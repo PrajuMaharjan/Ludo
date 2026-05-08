@@ -1,33 +1,47 @@
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    Animated,
+    ImageBackground,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 const Buttons = [
-  { 
-    title: "🤖 VS COMPUTER", 
+  {
+    title: "👩‍👩‍👧‍👦 VS PLAYER",
     route: "/gameScreen",
-    topColor: "lightblue",
-    bottomColor: "blue",
-    shadowColor: "rgba(0, 0, 255, 0.5)",  
+    topColor: "#f5c842",
+    bottomColor: "#c98f10",
+    shadowColor: "#996800",
   },
-  { 
-    title: "👩‍👩‍👧‍👦 VS PLAYER", 
+  {
+    title: "🤖 VS COMPUTER",
     route: "/gameScreen",
-    topColor: "lightgreen",
-    bottomColor: "green",
-    shadowColor: "rgba(0, 128, 0, 0.5)",
+    topColor: "'#4ecbf5'",
+    bottomColor: "#2a8fbf",
+    shadowColor: "#1a6a99",
   },
-  { 
-    title: "⚙️ SETTINGS", 
+  {
+    title: "⚙️ SETTINGS",
     route: "/settingsScreen",
-    topColor: "lightgray",
-    bottomColor: "gray",
-    shadowColor: "rgba(128, 128, 128, 0.5)",
+    topColor: "#72e86a",
+    bottomColor: "#3aaa32",
+    shadowColor: "#1f7a1a",
   },
 ];
 
-function CardButton({ label, route, topColor, bottomColor, shadowColor, delay }:{
-  label: string;
+function CardButton({
+  title,
+  route,
+  topColor,
+  bottomColor,
+  shadowColor,
+  delay,
+}: {
+  title: string;
   route: string;
   topColor: string;
   bottomColor: string;
@@ -40,7 +54,7 @@ function CardButton({ label, route, topColor, bottomColor, shadowColor, delay }:
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim,{
+      Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 5,
         tension: 40,
@@ -54,93 +68,170 @@ function CardButton({ label, route, topColor, bottomColor, shadowColor, delay }:
         delay,
       }),
     ]).start();
-  },[]);
+  });
 
-  const onPressOut = () => {
+  const onPressIn = () =>
+    Animated.spring(pressAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+      speed: 30,
+    }).start();
+
+  const onPressOut = () =>
     Animated.spring(pressAnim, {
       toValue: 1,
       useNativeDriver: true,
       speed: 20,
     }).start();
-  };
-return (
-  <Animated.View
-    style={[opacityAnim, { transform: [{ scale},{scale:pressAnim }] }]}>
-    <TouchableOpacity      
-       activeOpacity={1}
-       onPressIn={onPressIn}
-       onPressOut={onPressOut}
-       onPress={() => router.push(route as any)}>
-        <View style={[styles.cardOuter,{backgroundColor:shadowColor,borderColor:shadowColor},]}>
-        <View style={[styles.cardInner,{backgroundColor:bottomColor}]}>
-        }]
-        
-       </TouchableOpacity>
-    </Animated.View>
-export default function Index() {
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Play Ludo!</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/gameScreen")}
+    <Animated.View
+      style={{
+        opacity: opacityAnim,
+        transform: [{ scale: scaleAnim }, { scale: pressAnim }],
+      }}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        onPress={() => router.push(route as any)}
+      >
+        <View
+          style={[
+            styles.cardOuter,
+            { backgroundColor: shadowColor, borderColor: shadowColor },
+          ]}
         >
-          <Text style={styles.buttonText}> 🤖 VS COMPUTER</Text>
-        </TouchableOpacity>
+          <View
+            style={[
+              styles.cardInner,
+              { backgroundColor: topColor, borderColor: bottomColor },
+            ]}
+          >
+            <View
+              style={[styles.cardLedge, { backgroundColor: bottomColor }]}
+            />
+            <Text style={styles.cardLabel}>{title}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/gameScreen")}
-        >
-          <Text style={styles.buttonText}> 👩‍👩‍👧‍👦 VS PLAYER</Text>
-        </TouchableOpacity>
+export default function Index() {
+  const titleAnim = useRef(new Animated.Value(-60)).current;
+  const titleOpacity = useRef(new Animated.Value(0)).current;
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/settingsScreen")}
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(titleAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(titleOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [titleAnim, titleOpacity]);
+
+  return (
+    <ImageBackground
+      source={require("../assets/images/BackGroundImage.png")}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+      <View style={styles.container}>
+        <Animated.View
+          style={{
+            opacity: titleOpacity,
+            transform: [{ translateY: titleAnim }],
+            alignItems: "center",
+          }}
         >
-          <Text style={styles.buttonText}> ⚙️ SETTINGS</Text>
-        </TouchableOpacity>
+          <Text style={styles.title}>Play Ludo!</Text>
+        </Animated.View>
+
+        {/* Three buttons */}
+        <View style={styles.buttonContainer}>
+          {Buttons.map((btn, i) => (
+            <CardButton key={btn.title} {...btn} delay={i * 120 + 200} />
+          ))}
+        </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(10,20,60,0.50)",
+  },
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: 120,
     paddingBottom: 80,
-    padding: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 72,
     fontWeight: "bold",
-    color: "black",
-    marginTop: 200,
+    color: "white",
     letterSpacing: 1,
   },
   buttonContainer: {
     gap: 12,
     width: "100%",
     alignItems: "center",
-    position: "absolute",
-    bottom: 180,
   },
-  button: {
-    backgroundColor: "blue",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    width: "80%",
+  cardOuter: {
     borderRadius: 20,
-    alignItems: "center",
+    borderWidth: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 10,
   },
-  buttonText: {
-    color: "white",
-    fontSize: 20,
+  cardInner: {
+    borderRadius: 18,
+    borderWidth: 2,
+    borderTopColor: "rgba(255,255,255,0.4)",
+    borderTopWidth: 2,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  cardLedge: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+    opacity: 0.6,
+  },
+  cardLabel: {
+    fontSize: 22,
     fontWeight: "bold",
+    color: "#ffffff",
+    letterSpacing: 1.5,
+    textShadowColor: "rgba(0,0,0,0.4)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 });
