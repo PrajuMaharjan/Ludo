@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 export default function PageName() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Game Screen</Text>
+      <Text style={styles.title}>Game Screen In Progress</Text>
     </View>
   );
 }
