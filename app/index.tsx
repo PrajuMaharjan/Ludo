@@ -11,18 +11,11 @@ import {
 
 const Buttons = [
   {
-    title: "👩‍👩‍👧‍👦 VS PLAYER",
-    route: "/gameScreen",
+    title: "🎲 Play Ludo",
+    route: "/gameSettingsScreen",
     topColor: "#f5c842",
     bottomColor: "#c98f10",
     shadowColor: "#996800",
-  },
-  {
-    title: "🤖 VS COMPUTER",
-    route: "/gameScreen",
-    topColor: "'#4ecbf5'",
-    bottomColor: "#2a8fbf",
-    shadowColor: "#1a6a99",
   },
   {
     title: "⚙️ SETTINGS",
@@ -155,7 +148,7 @@ export default function Index() {
             alignItems: "center",
           }}
         >
-          <Text style={styles.title}>Play Ludo!</Text>
+          <Text style={styles.title}> Ludo! </Text>
         </Animated.View>
 
         {/* Three buttons */}
@@ -191,9 +184,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   buttonContainer: {
-    gap: 12,
+    gap: 50,
     width: "100%",
     alignItems: "center",
+    bottom:200,
   },
   cardOuter: {
     borderRadius: 20,
