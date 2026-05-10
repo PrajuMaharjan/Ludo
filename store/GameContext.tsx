@@ -25,7 +25,7 @@ export type GameSettings = {
 export type AdvancedSettings = {
   releaseOnOne: boolean;
   releaseOnSix: boolean;
-  furthestDiesOnNoLKill: boolean;
+  furthestDiesOnNoKill: boolean;
   furthestDiesOnThreeOnes: boolean;
   mustKillToEnterHome: boolean;
 };
@@ -68,7 +68,7 @@ export const DEFAULT_PLAYERS: Player[] = [
   },
 ];
 
-export const DEFAULT_GAME_SETTINGS: GameSettings = {
+const DEFAULT_GAME_SETTINGS: GameSettings = {
   playerCount: 2,
   players: DEFAULT_PLAYERS.slice(0, 2),
 };
@@ -76,7 +76,7 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
 export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   releaseOnOne: true,
   releaseOnSix: true,
-  furthestDiesOnNoLKill: true,
+  furthestDiesOnNoKill: true,
   furthestDiesOnThreeOnes: true,
   mustKillToEnterHome: false,
 };
@@ -92,9 +92,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameSettings, setGameSettings] = useState<GameSettings>(
     DEFAULT_GAME_SETTINGS,
   );
-  const [advancedSettings, setAdvancedSettingsState] = useState<AdvancedSettings>(
-    DEFAULT_ADVANCED_SETTINGS,
-  );
+  const [advancedSettings, setAdvancedSettingsState] =
+    useState<AdvancedSettings>(DEFAULT_ADVANCED_SETTINGS);
 
   useEffect(() => {
     const load = async () => {
