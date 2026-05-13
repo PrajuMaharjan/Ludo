@@ -1,25 +1,10 @@
+import { router } from "expo-router";
 import { useState } from "react";
-import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Board from "../components/Board/Board";
 import PlayerPanel from "../components/PlayerPanel/PlayerPanel";
 import Colors from "../constants/Colors";
 import { useGame } from "../store/GameContext";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-function BoardPlaceholder() {
-  return (
-    <View style={styles.boardPlaceholder}>
-      <Text style={styles.placeholderLabel}>BOARD</Text>
-      <Text style={styles.placeholderSub}>15 x 15 grid goes here</Text>
-    </View>
-  );
-}
 
 function DicePlaceholder() {
   return (
@@ -30,6 +15,41 @@ function DicePlaceholder() {
   );
 }
 
+function ExitConfirmModal({
+  visible,
+  onCancel,
+  onConfirm,
+}: {
+  visible: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>Quit Game?</Text>
+          <Text style={styles.modalBody}>
+            Your current game will be terminated.
+          </Text>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={styles.modalBtnCancel} onPress={onCancel}>
+              <Text style={styles.modalBtnCancelText}>Keep playing</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalBtnConfirm}
+              onPress={onConfirm}
+            >
+              <Text style={styles.modalBtnConfirmText}>Quit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function GameScreen() {
   const { gameSettings } = useGame();
 
@@ -37,9 +57,18 @@ export default function GameScreen() {
     gameSettings.players[0]?.id ?? 0,
   );
 
+  const [confirmExit, setConfirmExit] = useState(false);
+
   return (
     <View style={styles.screen}>
       <View style={styles.playerPanelArea}>
+        {/* Back Button */}
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => setConfirmExit(true)}
+        >
+          <Text style={styles.backBtnText}>✕</Text>
+        </TouchableOpacity>
         <PlayerPanel
           players={gameSettings.players}
           currentPlayerId={currentPlayerId}
@@ -47,15 +76,24 @@ export default function GameScreen() {
       </View>
 
       <View style={styles.boardArea}>
-        <BoardPlaceholder />
+        <Board />
       </View>
 
       <View style={styles.actionBar}>
         <DicePlaceholder />
       </View>
 
+      <ExitConfirmModal
+        visible={confirmExit}
+        onCancel={() => setConfirmExit(false)}
+        onConfirm={() => {
+          setConfirmExit(false);
+          router.back();
+        }}
+      />
+
       {/* The following lines are for development purposes only DELETE ONCE GAMELOGIC IS BUILT*/}
-      <View style={styles.devControls}>
+      <View style={styles.devControls} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.devBtn}
           onPress={() =>
@@ -111,16 +149,81 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.ui.textMuted,
   },
-  boardPlaceholder: {
-    width: SCREEN_WIDTH - 16,
-    height: SCREEN_WIDTH - 16,
-    backgroundColor: Colors.board.background,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: Colors.ui.cardBorder,
+  modalOverlay:{
+    flex:1,
+    backgroundColor:"rgba(0,0,0,0.7)",
+    alignItems:"center",
+    justifyContent:"center",
+    padding:32,
+  },
+  modalCard:{
+    backgroundColor:Colors.ui.appBg,
+    borderRadius:24,
+    padding:28,
+    width:"100%",
+    borderWidth:1.5,
+    borderColor:Colors.ui.cardBorder,
+    gap:12,
+  },
+  modalTitle:{
+    fontSize:22,
+    fontWeight:"bold",
+    color:Colors.ui.textPrimary,
+    textAlign:"center",
+  },
+  modalBody:{
+    fontSize:14,
+    color:Colors.ui.textMuted,
+    textAlign:"center",
+    lineHeight:20,
+  },
+  modalButtons:{
+    flexDirection:"row",
+    gap:12,
+    marginTop:4,
+  },
+  modalBtnCancel:{
+    flex:1,
+    backgroundColor:Colors.ui.cardBg,
+    borderRadius:14,
+    borderWidth:1.5,
+    borderColor:Colors.ui.cardBorder,
+    paddingVertical:14,
+    alignItems:"center",
+  },
+  modalBtnCancelText:{
+    fontSize:14,
+    fontWeight:"bold",
+    color:Colors.ui.textPrimary,
+  },
+  modalBtnConfirm:{
+    flex:1,
+    backgroundColor:Colors.ui.danger,
+    borderRadius:14,
+    paddingVertical:14,
+    alignItems:"center",
+  },
+  modalBtnConfirmText:{
+    fontSize:14,
+    fontWeight:"bold",
+    color:"#ffffff",
+  },
+  backBtn:{
+    position:"absolute",
+    top:8,
+    left:8,
+    zIndex:10,
+    width:32,
+    height:32,
+    borderRadius:16,
+    backgroundColor:"rgba(255,255,255,0.1)",
+    alignItems:"center",
+    justifyContent:"center",
+  },
+  backBtnText:{
+    color:Colors.ui.textMuted,
+    fontSize:14,
+    fontWeight:"bold",
   },
 
   // Delete these once game logic is built
@@ -145,4 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+
+  
 });

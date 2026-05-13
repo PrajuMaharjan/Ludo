@@ -9,7 +9,8 @@ export const BoardColors = {
   background: "#0d0520",
   cellDefault: "#ffffff",
   cellSafe: "#a8dadc",
-  centerFill: "rgba(0,0,0,0.15)",
+  centerFill: "rgba(247,201,72,0.15)",
+  gridLine:"rgba(0,0,0,0.15)",
 } as const;
 
 export const UIColors = {
