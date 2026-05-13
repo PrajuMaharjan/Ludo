@@ -45,12 +45,13 @@ function PlayerCard({
     <Animated.View
       style={[
         styles.card,
-        {
+        {borderColor}
+      ]}>
+        <Animated.View style={{
+          flex:1,
           transform: [{ scale: scaleAnim }],
-          borderColor,
-        },
-      ]}
-    >
+        }}>
+
       <View style={[styles.colorStrip, { backgroundColor: player.color }]} />
 
       <View style={styles.cardBody}>
@@ -80,6 +81,7 @@ function PlayerCard({
           <View style={[styles.activeDot, { backgroundColor: player.color }]} />
         )}
       </View>
+    </Animated.View>
     </Animated.View>
   );
 }
