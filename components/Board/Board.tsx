@@ -1,10 +1,10 @@
 import { Dimensions, StyleSheet, View } from "react-native";
 import Colors from "../../constants/Colors";
 import {
-    CELL_POSITIONS,
-    CENTER_CELL,
-    HOME_STRETCH_POSITIONS,
-    SAFE_CELLS
+  CELL_POSITIONS,
+  CENTER_CELL,
+  HOME_STRETCH_POSITIONS,
+  SAFE_CELLS,
 } from "../../constants/GameConstants";
 import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
@@ -25,15 +25,15 @@ type CellType =
 function getCellType(row: number, col: number): CellType {
   if (row === CENTER_CELL[0] && col === CENTER_CELL[1]) return "center";
 
-  const inRedBase = row >= 1 && row <= 5 && col >= 1 && col <= 5;
-  const inBlueBase = row >= 1 && row <= 5 && col >= 9 && col <= 13;
-  const inGreenBase = row >= 9 && row <= 13 && col >= 9 && col <= 13;
-  const inYellowBase = row >= 9 && row <= 13 && col >= 1 && col <= 5;
-  if (inRedBase || inBlueBase || inGreenBase || inYellowBase) return "homeBase";
-
   for (const cells of Object.values(HOME_STRETCH_POSITIONS)) {
     if (cells.some(([r, c]) => r === row && c === col)) return "homeStretch";
   }
+
+  const inRedBase = row >= 0 && row <= 5 && col >= 0 && col <= 5;
+  const inBlueBase = row >= 0 && row <= 5 && col >= 9 && col <= 14;
+  const inGreenBase = row >= 9 && row <= 14 && col >= 9 && col <= 134;
+  const inYellowBase = row >= 9 && row <= 14 && col >= 0 && col <= 5;
+  if (inRedBase || inBlueBase || inGreenBase || inYellowBase) return "homeBase";
 
   const trackIndex = CELL_POSITIONS.findIndex(
     ([tr, tc]) => tr === row && tc === col,
@@ -61,12 +61,10 @@ function getHomeStretchColor(row: number, col: number): string | null {
 }
 
 function getHomeBaseColor(row: number, col: number): string {
-  if (row >= 1 && row <= 5 && col >= 1 && col <= 5) return Colors.player.red;
-  if (row >= 1 && row <= 5 && col >= 9 && col <= 13) return Colors.player.blue;
-  if (row >= 9 && row <= 13 && col >= 9 && col <= 13)
-    return Colors.player.green;
-  if (row >= 9 && row <= 13 && col >= 1 && col <= 5)
-    return Colors.player.yellow;
+  if (row >= 0 && row <= 5 && col >= 0 && col <= 5) return Colors.player.red;
+  if (row >= 0 && row <= 5 && col >= 9 && col <= 14) return Colors.player.blue;
+  if (row >= 9 && row <= 14 && col >= 9 && col <= 14) return Colors.player.green;
+  if (row >= 9 && row <= 14 && col >= 0 && col <= 5) return Colors.player.yellow;
   return Colors.ui.appBg;
 }
 
@@ -87,7 +85,10 @@ export default function Board() {
                   key={`${row}-${col}`}
                   style={[
                     styles.cell,
-                    { backgroundColor: getHomeBaseColor(row, col) },
+                    { backgroundColor: getHomeBaseColor(row, col),
+                      borderWidth:0.5,
+                      borderColor:"rgba(0,0,0,0.4)",
+                     },
                   ]}
                 />
               );
