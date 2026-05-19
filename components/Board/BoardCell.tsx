@@ -11,77 +11,6 @@ type BoardCellProps = {
   size: number;
 };
 
-function CenterCell({ size }: { size: number }) {
-  const half = size / 2;
-  return (
-    <View style={{ width: size, height: size }}>
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          borderLeftWidth: half,
-          borderRightWidth: half,
-          borderBottomWidth: half,
-          borderLeftColor: "transparent",
-          borderRightColor: "transparent",
-          borderBottomColor: Colors.player.red,
-        }}
-      />
-
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          borderLeftWidth: half,
-          borderBottomWidth: half,
-          borderTopWidth: half,
-          borderTopColor: "transparent",
-          borderBottomColor: "transparent",
-          borderLeftColor: Colors.player.blue,
-        }}
-      />
-
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          borderTopWidth: half,
-          borderRightWidth: half,
-          borderLeftWidth: half,
-          borderLeftColor: "transparent",
-          borderRightColor: "transparent",
-          borderBottomColor: Colors.player.green,
-        }}
-      />
-
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          borderTopWidth: half,
-          borderRightWidth: half,
-          borderBottomWidth: half,
-          borderTopColor: "transparent",
-          borderBottomColor: "transparent",
-          borderRightColor: Colors.player.yellow,
-        }}
-      />
-    </View>
-  );
-}
-
 export default function BoardCell({ cellType, color, size }: BoardCellProps) {
   const cellStyle = {
     width: size,
@@ -93,7 +22,7 @@ export default function BoardCell({ cellType, color, size }: BoardCellProps) {
   }
 
   if (cellType === "center") {
-    return <CenterCell size={size} />;
+    return <View style={[cellStyle,{backgroundColor:Colors.board.background}]} />;
   }
 
   if (cellType === "safe") {
@@ -139,6 +68,6 @@ const styles = StyleSheet.create({
   trackCell: {
     backgroundColor: Colors.board.cellDefault,
     borderWidth: 0.5,
-    borderColor: "rgba(,0,0,0.4)",
+    borderColor: "rgba(0,0,0,0.4)",
   },
 });

@@ -1,8 +1,8 @@
 import { Dimensions, StyleSheet, View } from "react-native";
+import Svg, { Polygon } from "react-native-svg";
 import Colors from "../../constants/Colors";
 import {
   CELL_POSITIONS,
-  CENTER_CELL,
   HOME_STRETCH_POSITIONS,
   SAFE_CELLS,
 } from "../../constants/GameConstants";
@@ -23,7 +23,8 @@ type CellType =
   | "homeBase";
 
 function getCellType(row: number, col: number): CellType {
-  if (row === CENTER_CELL[0] && col === CENTER_CELL[1]) return "center";
+  const inCenter=row>=6 && row<=8 && col>=6 && col<=8;
+  if(inCenter) return "center";
 
   for (const cells of Object.values(HOME_STRETCH_POSITIONS)) {
     if (cells.some(([r, c]) => r === row && c === col)) return "homeStretch";
@@ -31,7 +32,7 @@ function getCellType(row: number, col: number): CellType {
 
   const inRedBase = row >= 0 && row <= 5 && col >= 0 && col <= 5;
   const inBlueBase = row >= 0 && row <= 5 && col >= 9 && col <= 14;
-  const inGreenBase = row >= 9 && row <= 14 && col >= 9 && col <= 134;
+  const inGreenBase = row >= 9 && row <= 14 && col >= 9 && col <= 14;
   const inYellowBase = row >= 9 && row <= 14 && col >= 0 && col <= 5;
   if (inRedBase || inBlueBase || inGreenBase || inYellowBase) return "homeBase";
 
@@ -66,6 +67,41 @@ function getHomeBaseColor(row: number, col: number): string {
   if (row >= 9 && row <= 14 && col >= 9 && col <= 14) return Colors.player.green;
   if (row >= 9 && row <= 14 && col >= 0 && col <= 5) return Colors.player.yellow;
   return Colors.ui.appBg;
+}
+
+function CenterOverlay(){
+  const size=CELL_SIZE*3;
+  const top=6*CELL_SIZE;
+  const left=6*CELL_SIZE;
+  const half=size/2;
+  
+  return(
+    <View style={{position:"absolute", top,left,width:size,height:size}}>
+      <Svg width={size} height={size}>
+        
+        <Polygon
+          points={`0,0 ${size},0 ${half},${half}`}
+          fill={Colors.player.blue}
+        />
+
+        <Polygon
+          points={`${size},0 ${size},${size} ${half},${half}`}
+          fill={Colors.player.green}
+        />
+
+        <Polygon
+          points={`0,${size} ${size},${size} ${half},${half}`}
+          fill={Colors.player.yellow}
+        />
+
+        <Polygon
+          points={`0,0 0,${size} ${half},${half}`}
+          fill={Colors.player.red}
+        />
+
+      </Svg>
+    </View>
+  );
 }
 
 export default function Board() {
@@ -115,6 +151,7 @@ export default function Board() {
       <HomeBase playerId={1} color={Colors.player.blue} />
       <HomeBase playerId={2} color={Colors.player.green} />
       <HomeBase playerId={3} color={Colors.player.yellow} />
+      <CenterOverlay />
     </View>
   );
 }
