@@ -6,15 +6,6 @@ import PlayerPanel from "../components/PlayerPanel/PlayerPanel";
 import Colors from "../constants/Colors";
 import { useGame } from "../store/GameContext";
 
-function DicePlaceholder() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderLabel}>DICE</Text>
-      <Text style={styles.placeholderSub}>Flick to roll</Text>
-    </View>
-  );
-}
-
 function ExitConfirmModal({
   visible,
   onCancel,
@@ -58,9 +49,28 @@ export default function GameScreen() {
   );
 
   const [confirmExit, setConfirmExit] = useState(false);
+  const [diceDisabled,setDiceDisabled]=useState(false);
+
+  const currentPlayer=gameSettings.players.find(
+    (p)=>p.id===currentPlayerId
+  );
+  const isComputerTurn=currentPlayer?.isComputer ?? false;
+
+  const handleRoll=(result:number)=>{
+    setDiceDisabled(true);
+
+    //TODO:Game logic goes here
+    setTimeout(()=>{
+      const ids=gameSettings.players.map((p)=>p.id);
+      const idx=ids.indexOf(currentPlayerId);
+      setCurrentPlayerId(ids[idx+1]%ids.length);
+      setDiceDisabled(false);
+    },1500);
+  };
 
   return (
     <View style={styles.screen}>
+
       <View style={styles.playerPanelArea}>
         {/* Back Button */}
         <TouchableOpacity
@@ -79,9 +89,12 @@ export default function GameScreen() {
         <Board />
       </View>
 
-      <View style={styles.actionBar}>
-        <DicePlaceholder />
-      </View>
+      <Dice
+            onRoll={handleRoll}
+            isComputerTurn={isComputerTurn}
+            disabled={diceDisabled}
+      />
+
 
       <ExitConfirmModal
         visible={confirmExit}
@@ -96,13 +109,11 @@ export default function GameScreen() {
       <View style={styles.devControls} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.devBtn}
-          onPress={() =>
-            setCurrentPlayerId((prev) => {
+          onPress={() =>{
               const ids = gameSettings.players.map((p) => p.id);
-              const idx = ids.indexOf(prev);
-              return ids[(idx + 1) % ids.length];
-            })
-          }
+              const idx = ids.indexOf(currentPlayerId);
+              setCurrentPlayerId(ids[(idx+1)%ids.length]);
+            }}
         >
           <Text style={styles.devBtnText}>Next Turn</Text>
         </TouchableOpacity>
@@ -123,13 +134,6 @@ const styles = StyleSheet.create({
   },
   boardArea: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionBar: {
-    height: 120,
-    borderTopColor: Colors.ui.divider,
-    borderTopWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
