@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Board from "../components/Board/Board";
+import Dice from "../components/Dice/Dice";
 import PlayerPanel from "../components/PlayerPanel/PlayerPanel";
 import Colors from "../constants/Colors";
 import { useGame } from "../store/GameContext";
@@ -49,28 +50,27 @@ export default function GameScreen() {
   );
 
   const [confirmExit, setConfirmExit] = useState(false);
-  const [diceDisabled,setDiceDisabled]=useState(false);
+  const [diceDisabled, setDiceDisabled] = useState(false);
 
-  const currentPlayer=gameSettings.players.find(
-    (p)=>p.id===currentPlayerId
+  const currentPlayer = gameSettings.players.find(
+    (p) => p.id === currentPlayerId,
   );
-  const isComputerTurn=currentPlayer?.isComputer ?? false;
+  const isComputerTurn = currentPlayer?.isComputer ?? false;
 
-  const handleRoll=(result:number)=>{
+  const handleRoll = (result: number) => {
     setDiceDisabled(true);
 
     //TODO:Game logic goes here
-    setTimeout(()=>{
-      const ids=gameSettings.players.map((p)=>p.id);
-      const idx=ids.indexOf(currentPlayerId);
-      setCurrentPlayerId(ids[idx+1]%ids.length);
+    setTimeout(() => {
+      const ids = gameSettings.players.map((p) => p.id);
+      const idx = ids.indexOf(currentPlayerId);
+      setCurrentPlayerId(ids[idx + 1] % ids.length);
       setDiceDisabled(false);
-    },1500);
+    }, 1500);
   };
 
   return (
     <View style={styles.screen}>
-
       <View style={styles.playerPanelArea}>
         {/* Back Button */}
         <TouchableOpacity
@@ -90,11 +90,10 @@ export default function GameScreen() {
       </View>
 
       <Dice
-            onRoll={handleRoll}
-            isComputerTurn={isComputerTurn}
-            disabled={diceDisabled}
+        onRoll={handleRoll}
+        isComputerTurn={isComputerTurn}
+        disabled={diceDisabled}
       />
-
 
       <ExitConfirmModal
         visible={confirmExit}
@@ -109,11 +108,11 @@ export default function GameScreen() {
       <View style={styles.devControls} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.devBtn}
-          onPress={() =>{
-              const ids = gameSettings.players.map((p) => p.id);
-              const idx = ids.indexOf(currentPlayerId);
-              setCurrentPlayerId(ids[(idx+1)%ids.length]);
-            }}
+          onPress={() => {
+            const ids = gameSettings.players.map((p) => p.id);
+            const idx = ids.indexOf(currentPlayerId);
+            setCurrentPlayerId(ids[(idx + 1) % ids.length]);
+          }}
         >
           <Text style={styles.devBtnText}>Next Turn</Text>
         </TouchableOpacity>
@@ -153,81 +152,81 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.ui.textMuted,
   },
-  modalOverlay:{
-    flex:1,
-    backgroundColor:"rgba(0,0,0,0.7)",
-    alignItems:"center",
-    justifyContent:"center",
-    padding:32,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
   },
-  modalCard:{
-    backgroundColor:Colors.ui.appBg,
-    borderRadius:24,
-    padding:28,
-    width:"100%",
-    borderWidth:1.5,
-    borderColor:Colors.ui.cardBorder,
-    gap:12,
+  modalCard: {
+    backgroundColor: Colors.ui.appBg,
+    borderRadius: 24,
+    padding: 28,
+    width: "100%",
+    borderWidth: 1.5,
+    borderColor: Colors.ui.cardBorder,
+    gap: 12,
   },
-  modalTitle:{
-    fontSize:22,
-    fontWeight:"bold",
-    color:Colors.ui.textPrimary,
-    textAlign:"center",
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: Colors.ui.textPrimary,
+    textAlign: "center",
   },
-  modalBody:{
-    fontSize:14,
-    color:Colors.ui.textMuted,
-    textAlign:"center",
-    lineHeight:20,
+  modalBody: {
+    fontSize: 14,
+    color: Colors.ui.textMuted,
+    textAlign: "center",
+    lineHeight: 20,
   },
-  modalButtons:{
-    flexDirection:"row",
-    gap:12,
-    marginTop:4,
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 4,
   },
-  modalBtnCancel:{
-    flex:1,
-    backgroundColor:Colors.ui.cardBg,
-    borderRadius:14,
-    borderWidth:1.5,
-    borderColor:Colors.ui.cardBorder,
-    paddingVertical:14,
-    alignItems:"center",
+  modalBtnCancel: {
+    flex: 1,
+    backgroundColor: Colors.ui.cardBg,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: Colors.ui.cardBorder,
+    paddingVertical: 14,
+    alignItems: "center",
   },
-  modalBtnCancelText:{
-    fontSize:14,
-    fontWeight:"bold",
-    color:Colors.ui.textPrimary,
+  modalBtnCancelText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: Colors.ui.textPrimary,
   },
-  modalBtnConfirm:{
-    flex:1,
-    backgroundColor:Colors.ui.danger,
-    borderRadius:14,
-    paddingVertical:14,
-    alignItems:"center",
+  modalBtnConfirm: {
+    flex: 1,
+    backgroundColor: Colors.ui.danger,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
   },
-  modalBtnConfirmText:{
-    fontSize:14,
-    fontWeight:"bold",
-    color:"#ffffff",
+  modalBtnConfirmText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#ffffff",
   },
-  backBtn:{
-    position:"absolute",
-    top:8,
-    left:8,
-    zIndex:10,
-    width:32,
-    height:32,
-    borderRadius:16,
-    backgroundColor:"rgba(255,255,255,0.1)",
-    alignItems:"center",
-    justifyContent:"center",
+  backBtn: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    zIndex: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  backBtnText:{
-    color:Colors.ui.textMuted,
-    fontSize:14,
-    fontWeight:"bold",
+  backBtnText: {
+    color: Colors.ui.textMuted,
+    fontSize: 14,
+    fontWeight: "bold",
   },
 
   // Delete these once game logic is built
@@ -252,6 +251,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
-
-  
 });
