@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { HOME_BASE_POSITIONS } from "../../constants/GameConstants";
-import { CELL_SIZE } from "./Board";
+import { CELL_SIZE } from "../../constants/BoardConstants";
 
 type HomeBaseProps = {
   playerId: number;

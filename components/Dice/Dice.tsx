@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {useAudioPlayer} from "expo-audio";
 import {
     Animated,
     Dimensions,
@@ -89,6 +90,9 @@ type DiceProps = {
 export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
   const [face, setFace] = useState(1);
 
+  // Function for sound while rolling
+  const player=useAudioPlayer(require("../../assets/sounds/dice_roll.wav"));
+
   const posX = useRef(SCREEN_WIDTH / 2 - DICE_SIZE / 2);
   const posY = useRef(SCREEN_HEIGHT - DICE_SIZE - 140);
   const animPos = useRef(
@@ -100,6 +104,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
   const rotation = useRef(new Animated.Value(0)).current;
   const rotationDeg = useRef(0);
+  const scaleAnim=useRef(new Animated.Value(1)).current;
 
   const velX = useRef(0);
   const velY = useRef(0);
@@ -111,6 +116,8 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
     (vx: number, vy: number) => {
       if (rollingRef.current) return;
       rollingRef.current = true;
+      player.seekTo(0);
+      player.play();
 
       velX.current = vx;
       velY.current = vy;
@@ -144,13 +151,14 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
         const speed = Math.sqrt(velX.current ** 2 + velY.current ** 2);
         rotationDeg.current += speed * ROTATION;
         rotation.setValue(rotationDeg.current);
-        if (Math.random() < 0.3) {
-          setFace(Math.ceil(Math.random() * 6));
-        }
+        const pulse=1+Math.sin(rotationDeg.current*0.1)*0.08;
+        scaleAnim.setValue(pulse);
+        animPos.setValue({x:posX.current,y:posY.current});
         animPos.setValue({ x: posX.current, y: posY.current });
 
         // Stopping logic
         if (speed < STOP_THRESHOLD) {
+          player.pause();
           const result = Math.ceil(Math.random() * 6);
           setFace(result);
           rollingRef.current = false;
@@ -169,7 +177,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
       };
       animRef.current = requestAnimationFrame(tick);
     },
-    [onRoll, animPos, rotation],
+    [onRoll, animPos, rotation,player,scaleAnim]
   );
 
   // Remembering position for subsequent rolls
@@ -247,6 +255,8 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
             { translateX: animPos.x },
             { translateY: animPos.y },
             { rotate: rotateInterpolate },
+            {scaleX:scaleAnim},
+            {scaleY:scaleAnim},
           ],
         },
       ]}

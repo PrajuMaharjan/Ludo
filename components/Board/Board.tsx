@@ -1,18 +1,14 @@
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Polygon } from "react-native-svg";
+import { BOARD_SIZE, CELL_SIZE } from "../../constants/BoardConstants";
 import Colors from "../../constants/Colors";
 import {
-  CELL_POSITIONS,
-  HOME_STRETCH_POSITIONS,
-  SAFE_CELLS,
+    CELL_POSITIONS,
+    HOME_STRETCH_POSITIONS,
+    SAFE_CELLS,
 } from "../../constants/GameConstants";
 import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-export const BOARD_SIZE = SCREEN_WIDTH - 16;
-export const CELL_SIZE = BOARD_SIZE / 15;
 
 type CellType =
   | "blank"
@@ -23,8 +19,8 @@ type CellType =
   | "homeBase";
 
 function getCellType(row: number, col: number): CellType {
-  const inCenter=row>=6 && row<=8 && col>=6 && col<=8;
-  if(inCenter) return "center";
+  const inCenter = row >= 6 && row <= 8 && col >= 6 && col <= 8;
+  if (inCenter) return "center";
 
   for (const cells of Object.values(HOME_STRETCH_POSITIONS)) {
     if (cells.some(([r, c]) => r === row && c === col)) return "homeStretch";
@@ -64,21 +60,24 @@ function getHomeStretchColor(row: number, col: number): string | null {
 function getHomeBaseColor(row: number, col: number): string {
   if (row >= 0 && row <= 5 && col >= 0 && col <= 5) return Colors.player.red;
   if (row >= 0 && row <= 5 && col >= 9 && col <= 14) return Colors.player.blue;
-  if (row >= 9 && row <= 14 && col >= 9 && col <= 14) return Colors.player.green;
-  if (row >= 9 && row <= 14 && col >= 0 && col <= 5) return Colors.player.yellow;
+  if (row >= 9 && row <= 14 && col >= 9 && col <= 14)
+    return Colors.player.green;
+  if (row >= 9 && row <= 14 && col >= 0 && col <= 5)
+    return Colors.player.yellow;
   return Colors.ui.appBg;
 }
 
-function CenterOverlay(){
-  const size=CELL_SIZE*3;
-  const top=6*CELL_SIZE;
-  const left=6*CELL_SIZE;
-  const half=size/2;
-  
-  return(
-    <View style={{position:"absolute", top,left,width:size,height:size}}>
+function CenterOverlay() {
+  const size = CELL_SIZE * 3;
+  const top = 6 * CELL_SIZE;
+  const left = 6 * CELL_SIZE;
+  const half = size / 2;
+
+  return (
+    <View
+      style={{ position: "absolute", top, left, width: size, height: size }}
+    >
       <Svg width={size} height={size}>
-        
         <Polygon
           points={`0,0 ${size},0 ${half},${half}`}
           fill={Colors.player.blue}
@@ -98,7 +97,6 @@ function CenterOverlay(){
           points={`0,0 0,${size} ${half},${half}`}
           fill={Colors.player.red}
         />
-
       </Svg>
     </View>
   );
@@ -121,10 +119,11 @@ export default function Board() {
                   key={`${row}-${col}`}
                   style={[
                     styles.cell,
-                    { backgroundColor: getHomeBaseColor(row, col),
-                      borderWidth:0.5,
-                      borderColor:"rgba(0,0,0,0.4)",
-                     },
+                    {
+                      backgroundColor: getHomeBaseColor(row, col),
+                      borderWidth: 0.5,
+                      borderColor: "rgba(0,0,0,0.4)",
+                    },
                   ]}
                 />
               );
