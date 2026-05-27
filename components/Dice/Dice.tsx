@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {useAudioPlayer} from "expo-audio";
-import { Dimensions,PanResponder,StyleSheet,View} from "react-native";
-import Animated,{useAnimatedStyle,useSharedValue,withTiming} from "react-native-reanimated";
+import {
+    Animated,
+    Dimensions,
+    PanResponder,
+    StyleSheet,
+    View,
+} from "react-native";
+import { useAudioPlayer } from "expo-audio";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const DICE_SIZE = 64;
 const FRICTION = 0.97;
 const STOP_THRESHOLD = 0.8;
-const ROTATION_SPEED= 3;
+const ROTATION = 3;
 
 const DOT_POSITIONS: Record<number, [number, number][]> = {
   1: [[50, 50]],
@@ -44,9 +49,15 @@ const DOT_POSITIONS: Record<number, [number, number][]> = {
   ],
 };
 
-function DiceFace({ value, size }: { value: number; size: number }) {
+function DiceFace({ value, size, isRolling }: { value: number; size: number, isRolling: boolean }) {
   const dots = DOT_POSITIONS[value] ?? DOT_POSITIONS[1];
   const dotSize = size * 0.16;
+
+  if(isRolling){
+    return(
+      <View style={[styles.face,{width:size,height:size,borderRadius:size*0.18}]} />
+    );
+  }
 
   return (
     <View
@@ -84,12 +95,29 @@ type DiceProps = {
 
 export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
   const [face, setFace] = useState(1);
+  const [isRolling,setIsRolling]=useState(false);
 
-  // Function for sound while rolling
-  const player=useAudioPlayer(require("../../assets/sounds/dice_roll.wav"));
+  const player = useAudioPlayer(require("../../assets/sounds/dice_roll.wav"));
 
   const posX = useRef(SCREEN_WIDTH / 2 - DICE_SIZE / 2);
   const posY = useRef(SCREEN_HEIGHT - DICE_SIZE - 140);
+  const animPos = useRef(
+    new Animated.ValueXY({
+      x: posX.current,
+      y: posY.current,
+    }),
+  ).current;
+
+  // Actual rotation
+  const rotationZ = useRef(new Animated.Value(0)).current;
+  const rotationZDeg = useRef(0);
+
+  // Rotation simulation
+  const skewX=useRef(new Animated.Value(0)).current;
+  const skewY=useRef(new Animated.Value(0)).current;
+
+  // Depth illusion
+  const scalePulse=useRef(new Animated.Value(1)).current;
 
   const velX = useRef(0);
   const velY = useRef(0);
@@ -97,34 +125,12 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
   const animRef = useRef<number | null>(null);
   const rollingRef = useRef(false);
 
-  const translateX=useSharedValue(posX.current);
-  const translateY=useSharedValue(posY.current);
-  const rotateX=useSharedValue(0);
-  const rotateY=useSharedValue(0);
-  const rotateZ=useSharedValue(0);
-  const scale=useSharedValue(1);
-
-  const rotXDeg=useRef(0);
-  const rotYDeg=useRef(0);
-  const rotZDeg=useRef(0);
-
-  const animStyle=useAnimatedStyle(()=>({
-    transform:[
-      {translateX:translateX.value},
-      {translateY:translateY.value},
-      {perspective:400},
-      {rotateX:`${rotateX.value}deg`},
-      {rotateY:`${rotateY.value}deg`},
-      {rotateZ:`${rotateZ.value}deg`},
-      {scale:scale.value},
-    ],
-  }));
-
-
   const startPhysics = useCallback(
     (vx: number, vy: number) => {
       if (rollingRef.current) return;
       rollingRef.current = true;
+      setIsRolling(true);
+
       player.seekTo(0);
       player.play();
 
@@ -158,29 +164,49 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
         // Rotation logic
         const speed = Math.sqrt(velX.current ** 2 + velY.current ** 2);
-        rotXDeg.current+=velY.current*ROTATION_SPEED;
-        rotYDeg.current-=velX.current*ROTATION_SPEED;
-        rotZDeg.current+=speed*0.5;
-        rotateX.value=rotXDeg.current;
-        rotateY.value=rotYDeg.current;
-        rotateZ.value=rotZDeg.current;
-        scale.value=1+Math.sin(rotZDeg.current*0.08)*0.06;
-        translateX.value=posX.current;
-        translateY.value=posY.current;
+        rotationZDeg.current += speed * ROTATION;
+        rotationZ.setValue(rotationZDeg.current);
+
+        // Tilt effect to simulate rotation
+        const skewXVal=Math.max(-25,Math.min(25,velY.current*2));
+        const skewYVal=Math.max(-25,Math.min(25,-velX.current*2));
+        skewX.setValue(skewXVal);
+        skewY.setValue(skewYVal);
+
+        animPos.setValue({ x: posX.current, y: posY.current });
 
         // Stopping logic
         if (speed < STOP_THRESHOLD) {
-          player.pause();
           const result = Math.ceil(Math.random() * 6);
           setFace(result);
+          setIsRolling(false);
           rollingRef.current = false;
 
           // Showing result of roll
-          rotateX.value=withTiming(Math.round(rotXDeg.current/90)*90,{duration:200});
-          rotateY.value=withTiming(Math.round(rotYDeg.current/90)*90,{duration:200});
-          rotateZ.value=withTiming(Math.round(rotZDeg.current/90)*90,{duration:200});
-          scale.value=withTiming(1,{duration:200});
+          Animated.parallel([
+          Animated.timing(rotationZ, {
+            toValue: Math.round(rotationZDeg.current / 90) * 90,
+            duration: 150,
+            useNativeDriver: false,
+          }),
+          Animated.timing(skewX, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: false,
+          }),
+          Animated.timing(skewY, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: false,
+          }),
+          Animated.timing(scalePulse, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: false,
+          }),
+          ]).start();
 
+          player.pause();
           onRoll(result);
           return;
         }
@@ -188,7 +214,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
       };
       animRef.current = requestAnimationFrame(tick);
     },
-    [onRoll, player, translateX,translateY,rotateX,rotateY,rotateZ,scale]
+    [onRoll, animPos, rotationZ,skewX,skewY,scalePulse,player],
   );
 
   // Remembering position for subsequent rolls
@@ -220,8 +246,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
         posX.current = e.nativeEvent.pageX - DICE_SIZE / 2;
         posY.current = e.nativeEvent.pageY - DICE_SIZE / 2;
-        translateX.value=posX.current;
-        translateY.value=posX.current;
+        animPos.setValue({ x: posX.current, y: posY.current });
 
         lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
         lastTime.current = now;
@@ -253,12 +278,48 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
   }, []);
 
   // Rendering the dice
+  const rotateInterpolate = rotationZ.interpolate({
+    inputRange: [0, 360],
+    outputRange: ["0deg", "360deg"],
+    extrapolate: "extend",
+  });
+
+  const skewXInterpolate=skewX.interpolate({
+    inputRange:[-25,25],
+    outputRange:["-25deg","25deg"],
+  });
+  const skewYInterpolate=skewY.interpolate({
+    inputRange:[-25,25],
+    outputRange:["-25deg","25deg"],
+  });
+
   return (
+    // Outer
     <Animated.View
-      style={[styles.diceWrapper,animStyle]}
-             {...panResponder.panHandlers}
+      style={[
+        styles.diceWrapper,
+        {
+          transform: [
+            { translateX: animPos.x },
+            { translateY: animPos.y },
+          ],
+        },
+      ]}
+      {...panResponder.panHandlers}
     >
-      <DiceFace value={face} size={DICE_SIZE} />
+      {/* Inner(Pseudo 3d using rotation,skew and scale) */}
+      <Animated.View style={{
+                width:DICE_SIZE,
+                height:DICE_SIZE,
+                transform:[
+                  {rotate:rotateInterpolate},
+                  {skewX:skewXInterpolate},
+                  {skewY:skewYInterpolate},
+                  {scaleX:scalePulse},
+                  {scaleY:scalePulse},
+                ],}}>
+        <DiceFace value={face} size={DICE_SIZE} isRolling={isRolling} />
+      </Animated.View>
     </Animated.View>
   );
 }
