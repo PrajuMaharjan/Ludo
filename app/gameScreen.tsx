@@ -103,20 +103,6 @@ export default function GameScreen() {
           router.back();
         }}
       />
-
-      {/* The following lines are for development purposes only DELETE ONCE GAMELOGIC IS BUILT*/}
-      <View style={styles.devControls} pointerEvents="box-none">
-        <TouchableOpacity
-          style={styles.devBtn}
-          onPress={() => {
-            const ids = gameSettings.players.map((p) => p.id);
-            const idx = ids.indexOf(currentPlayerId);
-            setCurrentPlayerId(ids[(idx + 1) % ids.length]);
-          }}
-        >
-          <Text style={styles.devBtnText}>Next Turn</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -228,27 +214,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-
-  // Delete these once game logic is built
-  devControls: {
-    position: "absolute",
-    top: 100,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    pointerEvents: "box-none",
-  },
-  devBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 8,
-  },
-  devBtnText: {
-    color: Colors.ui.textMuted,
-    fontSize: 12,
-    fontWeight: "bold",
-  },
+  
 });
