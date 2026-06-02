@@ -13,7 +13,7 @@ export default function RootLayout() {
         <Stack
           screenOptions={{ headerShown: false, animation: "slide_from_right", contentStyle:{backgroundColor:'transparent'}}}
         >
-          <Stack.Screen name="index" />
+          <Stack.Screen name="homeScreen" />
           <Stack.Screen name="gameScreen" />
           <Stack.Screen name="settingsScreen" />
           <Stack.Screen name="gameSettingsScreen" />
