@@ -8,7 +8,6 @@ const DICE_SIZE = 64;
 const FRICTION = 0.97;
 const STOP_DURATION = 1500;
 const ROTATION = 3;
-const NORMALIZED_SPEED=12;
 
 const DOT_POSITIONS: Record<number, [number, number][]> = {
   1: [[50, 50]],
@@ -100,8 +99,10 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
       const inputSpeed=Math.sqrt(vx**2+vy**2);
       const angle=inputSpeed>0.5 ? Math.atan2(vy,vx) : Math.random()*Math.PI*2;
-      velX.current = Math.cos(angle)*NORMALIZED_SPEED;
-      velY.current = Math.sin(angle)*NORMALIZED_SPEED;
+      
+      const isTap=inputSpeed<0.5;
+      velX.current = isTap ? 0 : Math.cos(angle)*inputSpeed;
+      velY.current = isTap ? 0 : Math.sin(angle)*inputSpeed;
 
       faceIntervalRef.current=setInterval(()=>{
         setFace(Math.ceil(Math.random()*6));
@@ -124,28 +125,11 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
             setIsRolling(false);
             rollingRef.current=false;
 
-            Animated.parallel([
-              Animated.timing(rotationZ, {
-                toValue: Math.round(rotationZDeg.current / 90) * 90,
-                duration: 150,
-                useNativeDriver: false,
-              }),
-              Animated.timing(skewX, {
-                toValue: 0,
-                duration: 150,
-                useNativeDriver: false,
-              }),
-              Animated.timing(skewY, {
-                toValue: 0,
-                duration: 150,
-                useNativeDriver: false,
-              }),
-              Animated.timing(scalePulse, {
-                toValue: 1,
-                duration: 150,
-                useNativeDriver: false,
-              }),
-            ]).start();
+            rotationZ.setValue(0);
+            rotationZDeg.current=0;
+            skewX.setValue(0);
+            skewY.setValue(0);
+            scalePulse.setValue(1);
 
             player.pause();
             onRoll(result);
@@ -178,11 +162,6 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
         // Rotation logic
         const speed = Math.sqrt(velX.current ** 2 + velY.current ** 2);
-        if(speed<3){
-          const boostAngle=Math.random()*Math.PI*2;
-          velX.current=Math.cos(boostAngle)*NORMALIZED_SPEED*0.6;
-          velY.current=Math.sin(boostAngle)*NORMALIZED_SPEED*0.6;
-        }
         rotationZDeg.current += speed * ROTATION;
         rotationZ.setValue(rotationZDeg.current);
 
