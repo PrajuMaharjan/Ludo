@@ -101,9 +101,13 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
       const angle=inputSpeed>0.5 ? Math.atan2(vy,vx) : Math.random()*Math.PI*2;
       
       const isTap=inputSpeed<0.5;
-      velX.current = isTap ? 0 : Math.cos(angle)*inputSpeed;
-      velY.current = isTap ? 0 : Math.sin(angle)*inputSpeed;
-
+      if(isTap){
+        velX.current=0;
+        velY.current=0;
+      }else{
+      velX.current = Math.cos(angle)*inputSpeed;
+      velY.current = Math.sin(angle)*inputSpeed;
+      }
       faceIntervalRef.current=setInterval(()=>{
         setFace(Math.ceil(Math.random()*6));
       },80);
@@ -162,7 +166,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
 
         // Rotation logic
         const speed = Math.sqrt(velX.current ** 2 + velY.current ** 2);
-        rotationZDeg.current += speed * ROTATION;
+        rotationZDeg.current += (speed * ROTATION)+100;
         rotationZ.setValue(rotationZDeg.current);
 
         // Tilt effect to simulate rotation

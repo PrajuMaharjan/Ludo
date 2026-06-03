@@ -60,14 +60,13 @@ export default function GameScreen() {
   const handleRoll = (result: number) => {
     setDiceDisabled(true);
 
-    //TODO:Game logic goes here
-    setTimeout(() => {
-      const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(currentPlayerId);
-      setCurrentPlayerId(ids[idx + 1] % ids.length);
+      setCurrentPlayerId((prev)=>{
+        const ids = gameSettings.players.map((p) => p.id);
+        const idx = ids.indexOf(prev);
+        return ids[(idx+1)%ids.length];
+      });
       setDiceDisabled(false);
-    }, 1500);
-  };
+};
 
   return (
     <View style={styles.screen}>
