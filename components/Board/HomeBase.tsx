@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import { HOME_BASE_POSITIONS } from "../../constants/GameConstants";
 import { CELL_SIZE } from "../../constants/BoardConstants";
+import Coin from "../Coin/Coin";
 
 type HomeBaseProps = {
   playerId: number;
@@ -42,61 +43,25 @@ export default function HomeBase({ playerId, color }: HomeBaseProps) {
           <View style={styles.coinGrid}>
             <View style={styles.coinRow}>
               {coinPositions.slice(0, 2).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.coinSlot,
-                    {
-                      width: coinSize,
-                      height: coinSize,
-                      borderRadius: coinSize / 2,
-                      borderColor: color,
-                    },
-                  ]}
-                >
-                  {/* COIN PLACEHOLDER : COIN WILL BE BUILT LATER*/}
-                  <View
-                    style={[
-                      styles.coinFill,
-                      {
-                        width: coinSize * 0.7,
-                        height: coinSize * 0.7,
-                        borderRadius: (coinSize * 0.7) / 2,
-                        backgroundColor: color,
-                      },
-                    ]}
-                  />
-                </View>
+                <Coin key="1st row"
+                      color={color}
+                      size={coinSize}
+                      isSelected={false}
+                      isComputer={false}
+                      disabled={true}
+                />
               ))}
             </View>
 
             <View style={styles.coinRow}>
               {coinPositions.slice(2, 4).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.coinSlot,
-                    {
-                      width: coinSize,
-                      height: coinSize,
-                      borderRadius: coinSize / 2,
-                      borderColor: color,
-                    },
-                  ]}
-                >
-                  {/* COIN PLACEHOLDER : COIN WILL BE BUILT LATER*/}
-                  <View
-                    style={[
-                      styles.coinFill,
-                      {
-                        width: coinSize * 0.7,
-                        height: coinSize * 0.7,
-                        borderRadius: (coinSize * 0.7) / 2,
-                        backgroundColor: color,
-                      },
-                    ]}
-                  />
-                </View>
+                <Coin key="2nd row"
+                      color={color}
+                      size={coinSize}
+                      isSelected={false}
+                      isComputer={false}
+                      disabled={true}
+                />
               ))}
             </View>
           </View>
@@ -133,15 +98,6 @@ const styles = StyleSheet.create({
   coinGrid: {
     gap: 6,
     alignItems: "center",
-  },
-  coinSlot: {
-    borderWidth: 2.5,
-    backgroundColor: "rgba(255,255,255,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  coinFill: {
-    opacity: 0.7,
   },
   coinRow: {
     flexDirection: "row",
