@@ -9,6 +9,7 @@ import {
 } from "../../constants/GameConstants";
 import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
+import {useGame} from "../../store/GameContext";
 
 type CellType =
   | "blank"
@@ -103,6 +104,9 @@ function CenterOverlay() {
 }
 
 export default function Board() {
+
+  const {gameSettings}=useGame();
+
   const rows = Array.from({ length: 15 }, (_, row) =>
     Array.from({ length: 15 }, (_, col) => ({ row, col })),
   );
@@ -146,10 +150,10 @@ export default function Board() {
         </View>
       ))}
 
-      <HomeBase playerId={0} color={Colors.player.red} />
-      <HomeBase playerId={1} color={Colors.player.blue} />
-      <HomeBase playerId={2} color={Colors.player.green} />
-      <HomeBase playerId={3} color={Colors.player.yellow} />
+      <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
       <CenterOverlay />
     </View>
   );
