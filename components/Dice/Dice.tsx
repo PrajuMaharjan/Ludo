@@ -56,6 +56,9 @@ export default function Dice({ onRoll, isComputerTurn, disabled ,currentPlayerId
   const [face, setFace] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
 
+  const disabledRef=useRef(disabled);
+  disabledRef.current=disabled;
+
   const player = useAudioPlayer(require("../../assets/sounds/dice_roll.wav"));
 
   const posX = useRef(SCREEN_WIDTH / 2 - DICE_SIZE / 2);
@@ -194,8 +197,8 @@ export default function Dice({ onRoll, isComputerTurn, disabled ,currentPlayerId
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !disabled && !rollingRef.current,
-      onMoveShouldSetPanResponder: () => !disabled && !rollingRef.current,
+      onStartShouldSetPanResponder: () => !disabledRef.current && !rollingRef.current,
+      onMoveShouldSetPanResponder: () => !disabledRef && !rollingRef.current,
 
       onPanResponderGrant: (e) => {
         lastPos.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
@@ -230,7 +233,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled ,currentPlayerId
 
   // CPU rolling logic
   useEffect(() => {
-    if (!isComputerTurn || disabled || rollingRef.current) return;
+    if (!isComputerTurn || rollingRef.current ) return;
 
     const timer = setTimeout(() => {
       const angle = Math.random() * Math.PI * 2;
@@ -239,7 +242,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled ,currentPlayerId
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [isComputerTurn, disabled, startPhysics,currentPlayerId]);
+  }, [isComputerTurn, startPhysics,currentPlayerId]);
 
   useEffect(() => {
     return () => {

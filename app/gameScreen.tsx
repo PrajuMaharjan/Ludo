@@ -91,7 +91,7 @@ export default function GameScreen() {
       <Dice
         onRoll={handleRoll}
         isComputerTurn={isComputerTurn}
-        disabled={diceDisabled}
+        disabled={diceDisabled || isComputerTurn}
         currentPlayerId={currentPlayerId}
       />
 
