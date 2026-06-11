@@ -49,9 +49,10 @@ type DiceProps = {
   onRoll: (result: number) => void;
   isComputerTurn: boolean;
   disabled: boolean;
+  currentPlayerId:number;
 };
 
-export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
+export default function Dice({ onRoll, isComputerTurn, disabled ,currentPlayerId}: DiceProps) {
   const [face, setFace] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
 
@@ -238,7 +239,7 @@ export default function Dice({ onRoll, isComputerTurn, disabled }: DiceProps) {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [isComputerTurn, disabled, startPhysics]);
+  }, [isComputerTurn, disabled, startPhysics,currentPlayerId]);
 
   useEffect(() => {
     return () => {

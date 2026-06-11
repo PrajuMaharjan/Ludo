@@ -92,6 +92,7 @@ export default function GameScreen() {
         onRoll={handleRoll}
         isComputerTurn={isComputerTurn}
         disabled={diceDisabled}
+        currentPlayerId={currentPlayerId}
       />
 
       <ExitConfirmModal
