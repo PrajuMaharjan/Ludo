@@ -46,12 +46,12 @@ export default function HomeBase({ playerId, color,player,isComputer }: HomeBase
           left,
           width: zoneSize,
           height: zoneSize,
-          backgroundColor: player ? color:"rgba(190,180,180,0.4)",
+          backgroundColor: color,
         },
       ]}
     >
       <View style={styles.innerCard}>
-        <View style={[styles.coinBox, { borderColor: player ? color:"rgba(0,0,0,0.15)"}]}>
+        <View style={[styles.coinBox, { borderColor: color}]}>
           <View style={styles.coinGrid}>
             
             <View style={styles.coinRow}>
