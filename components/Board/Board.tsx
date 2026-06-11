@@ -151,9 +151,9 @@ export default function Board() {
       ))}
 
       <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
-      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
-      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
-      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===1)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===2)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
+      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===3)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} />
       <CenterOverlay />
     </View>
   );
