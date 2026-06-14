@@ -1,6 +1,14 @@
 import { router } from "expo-router";
-import { useState } from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useState } from "react";
+import {
+    BackHandler,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
+import {useFocusEffect} from "@react-navigation/native";
 import Board from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
 import PlayerPanel from "../components/PlayerPanel/PlayerPanel";
@@ -57,16 +65,26 @@ export default function GameScreen() {
   );
   const isComputerTurn = currentPlayer?.isComputer ?? false;
 
+  useFocusEffect(
+    useCallback(()=>{
+      const backPress=BackHandler.addEventListener("hardwareBackPress",()=>{
+        setConfirmExit(true);
+        return true;
+      });
+      return()=>backPress.remove();
+    },[])
+  );
+
   const handleRoll = (result: number) => {
     setDiceDisabled(true);
 
-      setCurrentPlayerId((prev)=>{
-        const ids = gameSettings.players.map((p) => p.id);
-        const idx = ids.indexOf(prev);
-        return ids[(idx+1)%ids.length];
-      });
-      setDiceDisabled(false);
-};
+    setCurrentPlayerId((prev) => {
+      const ids = gameSettings.players.map((p) => p.id);
+      const idx = ids.indexOf(prev);
+      return ids[(idx + 1) % ids.length];
+    });
+    setDiceDisabled(false);
+  };
 
   return (
     <View style={styles.screen}>
@@ -214,5 +232,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-  
 });
