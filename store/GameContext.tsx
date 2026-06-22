@@ -28,6 +28,7 @@ export type AdvancedSettings = {
   furthestDiesOnNoKill: boolean;
   furthestDiesOnThreeOnes: boolean;
   mustKillToEnterHome: boolean;
+  partialPointDistributionMode:boolean;
 };
 
 type GameContextType = {
@@ -79,6 +80,7 @@ export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   furthestDiesOnNoKill: true,
   furthestDiesOnThreeOnes: true,
   mustKillToEnterHome: false,
+  partialPointDistributionMode:false,
 };
 
 const GameContext = createContext<GameContextType>({

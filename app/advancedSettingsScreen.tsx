@@ -28,26 +28,26 @@ type SettingConfig = {
 const SETTINGS: SettingConfig[] = [
   {
     key: "releaseOnOne",
-    label: "Release On 1",
+    label: "Release A Coin On 1",
     description: "A coin can leave home base when you roll a 1.",
     icon: "1️⃣",
   },
   {
     key: "releaseOnSix",
-    label: "Release On 6",
+    label: "Release A Coin On 6",
     description: "A coin can leave home base when you roll a 6.",
     icon: "6️⃣",
   },
   {
     key: "furthestDiesOnNoKill",
-    label: "Furthest Dies (No Kill)",
+    label: "Furthest Coin Dies on No Kill When Possible",
     description:
       "If you can kill an enemy coin but choose not to, your furthest coin us sent back home",
     icon: "💀",
   },
   {
     key: "furthestDiesOnThreeOnes",
-    label: "Furthest Dies (Three 1s)",
+    label: "Furthest Coin Dies On Three 1s In A Row",
     description:
       " Rolling three 1s in a row sends your furthest coin back home.",
     icon: "🎲",
@@ -59,6 +59,12 @@ const SETTINGS: SettingConfig[] = [
       "A coin cannot enter the home stretch unless you have captured atlease one enemy coin. If not, it loops back around",
     icon: "🏠",
   },
+  {
+    key:'partialPointDistributionMode',
+    label:'Partial Point Distribution Mode',
+    description:'Split your dice roll across multiple coins. e.g roll a 6 and move one coin 2 steps and another 4 steps.',
+    icon:'✂️',
+  }
 ];
 
 function SettingsRow({
@@ -246,6 +252,24 @@ export default function AdvancedSettingsScreen() {
               )}
             </View>
           </View>
+
+          {/* Rules Group : GameMode */}
+          <View style={styles.group}>
+            <Text style={styles.groupLabel}>GameMode</Text>
+            <View style={styles.card}>
+              {SETTINGS.filter((s) => s.key === "partialPointDistributionMode").map(
+                (config) => (
+                  <SettingsRow
+                    key={config.key}
+                    config={config}
+                    value={local[config.key]}
+                    onToggle={() => toggle(config.key)}
+                  />
+                ),
+              )}
+            </View>
+          </View>
+
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
