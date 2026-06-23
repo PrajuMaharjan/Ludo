@@ -67,30 +67,54 @@ const SETTINGS: SettingConfig[] = [
   }
 ];
 
+function DescriptionModal({visible,config,onClose}:{visible:boolean;config:SettingConfig | null;onClose:()=>void;}){
+  if (!config) return null;
+  return(
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.descModalHeader}>
+            <View style={styles.descModalIconWrap}>
+              <Text style={styles.descModalIcon}>{config.icon}</Text>
+            </View>
+              <TouchableOpacity style={styles.descModalClose} onPress={onClose}>
+                <Text style={styles.descModalCloseText}>X</Text>
+              </TouchableOpacity>
+          </View>
+          <Text style={styles.modalTitle}>{config.label}</Text>
+          <Text style={styles.modalBody}>{config.description}</Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function SettingsRow({
   config,
   value,
   onToggle,
+  onPressInfo,
 }: {
   config: SettingConfig;
   value: boolean;
   onToggle: () => void;
+  onPressInfo:()=>void;
 }) {
   return (
-    <View style={styles.settingsRow}>
-      <View style={styles.settingsIcon}>
-        <Text style={styles.settingIconText}>{config.icon}</Text>
-      </View>
-      <View style={styles.settingText}>
-        <Text style={styles.settingLabel}>{config.label}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{ false: "rgba(255,255,255,0.15)", true: "#f7c948" }}
-        thumbColor={value ? "#1a0a2e" : "rgba(255,255,255,0.6)"}
-      />
-    </View>
+    <TouchableOpacity style={styles.settingsRow} onPress={onPressInfo} activeOpacity={0.7}>
+        <View style={styles.settingsIcon}>
+          <Text style={styles.settingIconText}>{config.icon}</Text>
+        </View>
+        <View style={styles.settingText}>
+          <Text style={styles.settingLabel}>{config.label}</Text>
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onToggle}
+          trackColor={{ false: "rgba(255,255,255,0.15)", true: "#f7c948" }}
+          thumbColor={value ? "#1a0a2e" : "rgba(255,255,255,0.6)"}
+        />
+      </TouchableOpacity>
   );
 }
 
@@ -137,6 +161,7 @@ export default function AdvancedSettingsScreen() {
 
   const [local, setLocal] = useState<AdvancedSettings>({ ...advancedSettings });
   const [popupVisible, setPopupVisible] = useState(false);
+  const [descConfig,setDescConfig]=useState<SettingConfig | null>(null);
 
   useEffect(() => {
     setLocal({ ...advancedSettings });
@@ -208,6 +233,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
+                    onPressInfo={()=>setDescConfig(config)}
                   />
                   {index < arr.length - 1 && <View style={styles.divider} />}
                 </View>
@@ -229,6 +255,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
+                    onPressInfo={()=>setDescConfig(config)}
                   />
                   {index < arr.length - 1 && <View style={styles.divider} />}
                 </View>
@@ -247,6 +274,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
+                    onPressInfo={()=>setDescConfig(config)}
                   />
                 ),
               )}
@@ -264,6 +292,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
+                    onPressInfo={()=>setDescConfig(config)}
                   />
                 ),
               )}
@@ -284,6 +313,12 @@ export default function AdvancedSettingsScreen() {
         onChooseOne={() => handlePopupChoose("releaseOnOne")}
         onChooseSix={() => handlePopupChoose("releaseOnSix")}
       />
+
+      <DescriptionModal visible={descConfig !==null}
+                        config={descConfig}
+                        onClose={()=>setDescConfig(null)}
+      />
+
     </>
   );
 }
@@ -455,4 +490,33 @@ const styles = StyleSheet.create({
     color: "#1a0a2e",
     letterSpacing: 1,
   },
+  descModalHeader:{
+    flexDirection:"row",
+    alignItems:"center",
+    justifyContent:"space-between",
+  },
+  descModalIconWrap:{
+    width:48,
+    height:48,
+    borderRadius:14,
+    backgroundColor:"rgba(255,255,255,0.08)",
+    alignItems:"center",
+    justifyContent:"center",
+  },
+  descModalIcon:{
+    fontSize:24,
+  },
+  descModalClose:{
+    width:36,
+    height:36,
+    borderRadius:18,
+    backgroundColor:"rgba(255,255,255,0.1)",
+    alignItems:"center",
+    justifyContent:"center",
+  },
+  descModalCloseText:{
+    color:"white",
+    fontSize:14,
+    fontWeight:"bold",
+  }
 });
