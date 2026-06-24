@@ -1,6 +1,7 @@
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
+    BackHandler,
     ImageBackground,
     Modal,
     ScrollView,
@@ -60,26 +61,33 @@ const SETTINGS: SettingConfig[] = [
     icon: "🏠",
   },
   {
-    key:'partialPointDistributionMode',
-    label:'Partial Point Distribution Mode',
-    description:'Split your dice roll across multiple coins. e.g roll a 6 and move one coin 2 steps and another 4 steps.',
-    icon:'✂️',
-  }
+    key: "partialPointDistributionMode",
+    label: "Partial Point Distribution Mode",
+    description:
+      "Split your dice roll across multiple coins. e.g roll a 6 and move one coin 2 steps and another 4 steps.",
+    icon: "✂️",
+  },
 ];
 
-function DescriptionModal({visible,config,onClose}:{visible:boolean;config:SettingConfig | null;onClose:()=>void;}){
+function DescriptionModal({
+  visible,
+  config,
+  onClose,
+}: {
+  visible: boolean;
+  config: SettingConfig | null;
+  onClose: () => void;
+}) {
   if (!config) return null;
-  return(
+  return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
-          <View style={styles.descModalHeader}>
-            <View style={styles.descModalIconWrap}>
-              <Text style={styles.descModalIcon}>{config.icon}</Text>
-            </View>
-              <TouchableOpacity style={styles.descModalClose} onPress={onClose}>
-                <Text style={styles.descModalCloseText}>X</Text>
-              </TouchableOpacity>
+        <View style={styles.descModalCard}>
+          <TouchableOpacity style={styles.descModalClose} onPress={onClose}>
+            <Text style={styles.descModalCloseText}>X</Text>
+          </TouchableOpacity>
+          <View style={styles.descModalIconWrap}>
+            <Text style={styles.descModalIcon}>{config.icon}</Text>
           </View>
           <Text style={styles.modalTitle}>{config.label}</Text>
           <Text style={styles.modalBody}>{config.description}</Text>
@@ -98,23 +106,75 @@ function SettingsRow({
   config: SettingConfig;
   value: boolean;
   onToggle: () => void;
-  onPressInfo:()=>void;
+  onPressInfo: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.settingsRow} onPress={onPressInfo} activeOpacity={0.7}>
-        <View style={styles.settingsIcon}>
-          <Text style={styles.settingIconText}>{config.icon}</Text>
+    <TouchableOpacity
+      style={styles.settingsRow}
+      onPress={onPressInfo}
+      activeOpacity={0.7}
+    >
+      <View style={styles.settingsIcon}>
+        <Text style={styles.settingIconText}>{config.icon}</Text>
+      </View>
+      <View style={styles.settingText}>
+        <Text style={styles.settingLabel}>{config.label}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onToggle}
+        trackColor={{ false: "rgba(255,255,255,0.15)", true: "#f7c948" }}
+        thumbColor={value ? "#1a0a2e" : "rgba(255,255,255,0.6)"}
+      />
+    </TouchableOpacity>
+  );
+}
+
+function UnsavedChangesModal({
+  visible,
+  onExitWithoutSaving,
+  onSaveAndExit,
+  onCancel,
+}: {
+  visible: boolean;
+  onExitWithoutSaving: () => void;
+  onSaveAndExit: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.descModalCard}>
+          <Text style={styles.modalTitle}>Unsaved Changes</Text>
+          <Text style={styles.modalBody}>
+            You have unsaved changes. What would you like to do?
+          </Text>
+
+          <View style={styles.unsavedBtnCol}>
+            <TouchableOpacity
+              style={styles.unsavedBtnExit}
+              onPress={onExitWithoutSaving}
+            >
+              <Text style={styles.unsavedBtnExitText}>Exit Without Saving</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.unsavedBtnSave}
+              onPress={onSaveAndExit}
+            >
+              <Text style={styles.unsavedBtnSaveText}>Save and Exit</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.unsavedBtnCancel}
+              onPress={onCancel}
+            >
+              <Text style={styles.unsavedBtnCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.settingText}>
-          <Text style={styles.settingLabel}>{config.label}</Text>
-        </View>
-        <Switch
-          value={value}
-          onValueChange={onToggle}
-          trackColor={{ false: "rgba(255,255,255,0.15)", true: "#f7c948" }}
-          thumbColor={value ? "#1a0a2e" : "rgba(255,255,255,0.6)"}
-        />
-      </TouchableOpacity>
+      </View>
+    </Modal>
   );
 }
 
@@ -140,14 +200,9 @@ function FixPopup({
               <Text style={styles.modalBtnIcon}>1️⃣</Text>
               <Text style={styles.modalBtnText}>Release On 1</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalBtn]}
-              onPress={onChooseSix}
-            >
+            <TouchableOpacity style={[styles.modalBtn]} onPress={onChooseSix}>
               <Text style={styles.modalBtnIcon}>6️⃣</Text>
-              <Text style={[styles.modalBtnText]}>
-                Release On 6
-              </Text>
+              <Text style={[styles.modalBtnText]}>Release On 6</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -161,17 +216,41 @@ export default function AdvancedSettingsScreen() {
 
   const [local, setLocal] = useState<AdvancedSettings>({ ...advancedSettings });
   const [popupVisible, setPopupVisible] = useState(false);
-  const [descConfig,setDescConfig]=useState<SettingConfig | null>(null);
+  const [descConfig, setDescConfig] = useState<SettingConfig | null>(null);
+  const [unsavedVisible, setUnsavedVisible] = useState(false);
 
-  useEffect(() => {
-    setLocal({ ...advancedSettings });
-  }, [advancedSettings]);
+  const hasChanges = JSON.stringify(local) !== JSON.stringify(advancedSettings);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (hasChanges) {
+            setUnsavedVisible(true);
+            return true;
+          }
+          return false;
+        },
+      );
+      return () => subscription.remove();
+    }, [hasChanges]),
+  );
 
   const toggle = (key: SettingKey) => {
     setLocal((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSave = () => {
+  const handleBack = () => {
+    if (hasChanges) {
+      setUnsavedVisible(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleSaveAndExit = () => {
+    setUnsavedVisible(false);
     if (!local.releaseOnOne && !local.releaseOnSix) {
       setPopupVisible(true);
       return;
@@ -205,10 +284,7 @@ export default function AdvancedSettingsScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backBtn}
-            >
+            <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
               <Text style={styles.backBtnText}>← Back</Text>
             </TouchableOpacity>
             <Text style={styles.heading}>Advanced</Text>
@@ -233,7 +309,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
-                    onPressInfo={()=>setDescConfig(config)}
+                    onPressInfo={() => setDescConfig(config)}
                   />
                   {index < arr.length - 1 && <View style={styles.divider} />}
                 </View>
@@ -255,7 +331,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
-                    onPressInfo={()=>setDescConfig(config)}
+                    onPressInfo={() => setDescConfig(config)}
                   />
                   {index < arr.length - 1 && <View style={styles.divider} />}
                 </View>
@@ -274,7 +350,7 @@ export default function AdvancedSettingsScreen() {
                     config={config}
                     value={local[config.key]}
                     onToggle={() => toggle(config.key)}
-                    onPressInfo={()=>setDescConfig(config)}
+                    onPressInfo={() => setDescConfig(config)}
                   />
                 ),
               )}
@@ -285,23 +361,22 @@ export default function AdvancedSettingsScreen() {
           <View style={styles.group}>
             <Text style={styles.groupLabel}>GameMode</Text>
             <View style={styles.card}>
-              {SETTINGS.filter((s) => s.key === "partialPointDistributionMode").map(
-                (config) => (
-                  <SettingsRow
-                    key={config.key}
-                    config={config}
-                    value={local[config.key]}
-                    onToggle={() => toggle(config.key)}
-                    onPressInfo={()=>setDescConfig(config)}
-                  />
-                ),
-              )}
+              {SETTINGS.filter(
+                (s) => s.key === "partialPointDistributionMode",
+              ).map((config) => (
+                <SettingsRow
+                  key={config.key}
+                  config={config}
+                  value={local[config.key]}
+                  onToggle={() => toggle(config.key)}
+                  onPressInfo={() => setDescConfig(config)}
+                />
+              ))}
             </View>
           </View>
 
-
           {/* Save Button */}
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSaveAndExit}>
             <Text style={styles.saveBtnText}>Save Settings</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -314,11 +389,21 @@ export default function AdvancedSettingsScreen() {
         onChooseSix={() => handlePopupChoose("releaseOnSix")}
       />
 
-      <DescriptionModal visible={descConfig !==null}
-                        config={descConfig}
-                        onClose={()=>setDescConfig(null)}
+      <DescriptionModal
+        visible={descConfig !== null}
+        config={descConfig}
+        onClose={() => setDescConfig(null)}
       />
 
+      <UnsavedChangesModal
+        visible={unsavedVisible}
+        onExitWithoutSaving={() => {
+          setUnsavedVisible(false);
+          router.back();
+        }}
+        onSaveAndExit={handleSaveAndExit}
+        onCancel={() => setUnsavedVisible(false)}
+      />
     </>
   );
 }
@@ -362,6 +447,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",
     alignItems: "center",
+    justifyContent: "center",
     padding: 32,
   },
   modalCard: {
@@ -490,33 +576,86 @@ const styles = StyleSheet.create({
     color: "#1a0a2e",
     letterSpacing: 1,
   },
-  descModalHeader:{
-    flexDirection:"row",
-    alignItems:"center",
-    justifyContent:"space-between",
+  descModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  descModalIconWrap:{
-    width:48,
-    height:48,
-    borderRadius:14,
-    backgroundColor:"rgba(255,255,255,0.08)",
-    alignItems:"center",
-    justifyContent:"center",
+  descModalIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  descModalIcon:{
-    fontSize:24,
+  descModalIcon: {
+    fontSize: 24,
   },
-  descModalClose:{
-    width:36,
-    height:36,
-    borderRadius:18,
-    backgroundColor:"rgba(255,255,255,0.1)",
-    alignItems:"center",
-    justifyContent:"center",
+  descModalClose: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-end",
   },
-  descModalCloseText:{
-    color:"white",
+  descModalCloseText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  descModalCard: {
+    backgroundColor: "#1a0a2e",
+    borderRadius: 24,
+    padding: 20,
+    width: "100%",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.08)",
+    gap: 16,
+    alignItems: "center",
+  },
+  unsavedBtnCol: {
+    width: "100%",
+    gap: 10,
+    marginTop: 4,
+  },
+  unsavedBtnExit: {
+    backgroundColor: "rgba(230,57,70,0.2)",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#e63946",
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  unsavedBtnExitText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#e63946",
+  },
+  unsavedBtnSave: {
+    backgroundColor: "#f7c948",
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  unsavedBtnSaveText:{
     fontSize:14,
-    fontWeight:"bold",
+    fontWeight:'bold',
+    color:'#1a0a2e',
+  },
+  unsavedBtnCancel:{
+    backgroundColor:'rgba(255,255,255,0.08)',
+    borderRadius:14,
+    borderWidth:1.5,
+    borderColor:'rgba(255,255,255,0.15)',
+    paddingVertical:14,
+    alignItems:'center',
+  },
+  unsavedBtnCancelText:{
+    fontSize:14,
+    fontWeight:'bold',
+    color:'#ffffff'
   }
 });
