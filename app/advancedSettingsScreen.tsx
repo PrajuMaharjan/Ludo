@@ -81,8 +81,8 @@ function DescriptionModal({
   if (!config) return null;
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
-        <View style={styles.descModalCard}>
+      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
+        <TouchableOpacity style={styles.descModalCard} onPress={()=>{}} activeOpacity={1}>
           <TouchableOpacity style={styles.descModalClose} onPress={onClose}>
             <Text style={styles.descModalCloseText}>X</Text>
           </TouchableOpacity>
@@ -91,8 +91,8 @@ function DescriptionModal({
           </View>
           <Text style={styles.modalTitle}>{config.label}</Text>
           <Text style={styles.modalBody}>{config.description}</Text>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -143,8 +143,8 @@ function UnsavedChangesModal({
 }) {
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
-        <View style={styles.descModalCard}>
+      <TouchableOpacity style={styles.modalOverlay} onPress={onCancel} activeOpacity={1}>
+        <TouchableOpacity style={styles.descModalCard} onPress={()=>{}} activeOpacity={1}>
           <Text style={styles.modalTitle}>Unsaved Changes</Text>
           <Text style={styles.modalBody}>
             You have unsaved changes. What would you like to do?
@@ -172,8 +172,8 @@ function UnsavedChangesModal({
               <Text style={styles.unsavedBtnCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -182,15 +182,17 @@ function FixPopup({
   visible,
   onChooseOne,
   onChooseSix,
+  onClose
 }: {
   visible: boolean;
   onChooseOne: () => void;
   onChooseSix: () => void;
+  onClose:()=>void;
 }) {
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
+      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
+        <TouchableOpacity style={styles.modalCard} onPress={()=>{}} activeOpacity={1}>
           <Text style={styles.modalTitle}>⚠️ Invalid Settings</Text>
           <Text style={styles.modalBody}>
             Atleast one of these rules must be enabled. Choose one :
@@ -205,8 +207,8 @@ function FixPopup({
               <Text style={[styles.modalBtnText]}>Release On 6</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -387,6 +389,7 @@ export default function AdvancedSettingsScreen() {
         visible={popupVisible}
         onChooseOne={() => handlePopupChoose("releaseOnOne")}
         onChooseSix={() => handlePopupChoose("releaseOnSix")}
+        onClose={()=>setPopupVisible(false)}
       />
 
       <DescriptionModal
