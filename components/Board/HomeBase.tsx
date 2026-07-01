@@ -39,7 +39,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive}:
 
   const coinSize = CELL_SIZE * 0.85;
 
-  const darkColor=darken(color,0.35);
+  const darkColor=color;
 
   const flashAnim=useRef(new Animated.Value(0)).current;
 
@@ -49,12 +49,12 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive}:
       loop=Animated.loop(Animated.sequence([
               Animated.timing(flashAnim,{
                 toValue:1,
-                duration:450,
+                duration:800,
                 useNativeDriver:false,
               }),
               Animated.timing(flashAnim,{
                 toValue:0,
-                duration:450,
+                duration:800,
                 useNativeDriver:false
               }),              
       ]),
