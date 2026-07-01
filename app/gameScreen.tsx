@@ -11,7 +11,6 @@ import {
 import {useFocusEffect} from "@react-navigation/native";
 import Board from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
-import PlayerPanel from "../components/PlayerPanel/PlayerPanel";
 import Colors from "../constants/Colors";
 import { useGame } from "../store/GameContext";
 
@@ -88,7 +87,6 @@ export default function GameScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.playerPanelArea}>
         {/* Back Button */}
         <TouchableOpacity
           style={styles.backBtn}
@@ -96,14 +94,9 @@ export default function GameScreen() {
         >
           <Text style={styles.backBtnText}>✕</Text>
         </TouchableOpacity>
-        <PlayerPanel
-          players={gameSettings.players}
-          currentPlayerId={currentPlayerId}
-        />
-      </View>
 
       <View style={styles.boardArea}>
-        <Board />
+        <Board currentPlayerId={currentPlayerId} />
       </View>
 
       <Dice
@@ -129,11 +122,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Colors.ui.appBg,
-  },
-  playerPanelArea: {
-    height: 90,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.ui.divider,
   },
   boardArea: {
     flex: 1,
@@ -217,7 +205,7 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     position: "absolute",
-    top: 8,
+    top: 48,
     left: 8,
     zIndex: 10,
     width: 32,

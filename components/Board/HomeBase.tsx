@@ -1,4 +1,5 @@
-import { StyleSheet, View } from "react-native";
+import { Animated,StyleSheet,Text, View } from "react-native";
+import {useEffect,useRef} from "react";
 import { HOME_BASE_POSITIONS } from "../../constants/GameConstants";
 import { CELL_SIZE } from "../../constants/BoardConstants";
 import Coin from "../Coin/Coin";
@@ -9,6 +10,7 @@ type HomeBaseProps = {
   color: string;
   player: Player | undefined;
   isComputer:boolean;
+  isActive:boolean;
 };
 
 const QUADRANT_ORIGINS: Record<number, [number, number]> = {
@@ -18,7 +20,16 @@ const QUADRANT_ORIGINS: Record<number, [number, number]> = {
   3: [9, 0],
 };
 
-export default function HomeBase({ playerId, color,player,isComputer }: HomeBaseProps) {
+function darken(hex:string,amount:number):string{
+  const num=parseInt(hex.replace("#",""),16);
+  const r=Math.max(0,Math.floor(((num>>16) & 0xff)*(1-amount)));
+  const g=Math.max(0,Math.floor(((num>>8) & 0xff)*(1-amount)));
+  const b=Math.max(0,Math.floor((num & 0xff)*(1-amount)));
+
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
+};
+
+export default function HomeBase({ playerId, color,player,isComputer ,isActive}: HomeBaseProps) {
   const [originRow, originCol] = QUADRANT_ORIGINS[playerId];
   const coinPositions = HOME_BASE_POSITIONS[playerId];
 
@@ -27,6 +38,40 @@ export default function HomeBase({ playerId, color,player,isComputer }: HomeBase
   const left = originCol * CELL_SIZE;
 
   const coinSize = CELL_SIZE * 0.85;
+
+  const darkColor=color;
+
+  const flashAnim=useRef(new Animated.Value(0)).current;
+
+  useEffect(()=>{
+    let loop:Animated.CompositeAnimation | null=null;
+    if(isActive){
+      loop=Animated.loop(Animated.sequence([
+              Animated.timing(flashAnim,{
+                toValue:1,
+                duration:800,
+                useNativeDriver:false,
+              }),
+              Animated.timing(flashAnim,{
+                toValue:0,
+                duration:800,
+                useNativeDriver:false
+              }),              
+      ]),
+      );
+      loop.start();
+    }else{
+      flashAnim.setValue(0);
+    }
+    return()=>{
+      loop?.stop();
+    };
+  },[isActive,flashAnim]);
+
+  const animatedBackgroundColor=flashAnim.interpolate({
+    inputRange:[0,1],
+    outputRange:[darkColor,"#ffffff"],
+  });
 
   const emptySlotStyle={
     width:coinSize,
@@ -38,7 +83,7 @@ export default function HomeBase({ playerId, color,player,isComputer }: HomeBase
   };
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.zone,
         {
@@ -46,7 +91,7 @@ export default function HomeBase({ playerId, color,player,isComputer }: HomeBase
           left,
           width: zoneSize,
           height: zoneSize,
-          backgroundColor: color,
+          backgroundColor: isActive ? animatedBackgroundColor:darkColor,
         },
       ]}
     >
@@ -86,8 +131,14 @@ export default function HomeBase({ playerId, color,player,isComputer }: HomeBase
 
           </View>
         </View>
+        {/* Player Name below HomeBase */}
+        {player &&(
+          <Text style={styles.playerName} numberOfLines={1}>
+            {player.name}
+          </Text>
+        )}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -108,6 +159,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
+    gap:4,
   },
   coinBox: {
     backgroundColor: "#ffffff",
@@ -124,4 +176,13 @@ const styles = StyleSheet.create({
     gap: 6,
     justifyContent: "center",
   },
+  playerName:{
+    fontSize:11,
+    fontWeight:"bold",
+    color:"#ffffff",
+    textShadowColor:"rgba(0,0,0,0.6)",
+    textShadowOffset:{width:0,height:1},
+    textShadowRadius:2,
+    maxWidth:"90%",
+  }
 });
