@@ -26,7 +26,7 @@ function darken(hex:string,amount:number):string{
   const g=Math.max(0,Math.floor(((num>>8) & 0xff)*(1-amount)));
   const b=Math.max(0,Math.floor((num & 0xff)*(1-amount)));
 
-  return `rgb(${r},${g},${b}`;
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
 };
 
 export default function HomeBase({ playerId, color,player,isComputer ,isActive}: HomeBaseProps) {
