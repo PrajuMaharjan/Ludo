@@ -6,6 +6,7 @@ import {
     useEffect,
     useState,
 } from "react";
+import {PIECES_PER_PLAYER} from "../constants/GameConstants";
 
 const STORAGE_KEY = "ludo_advanced_settings";
 
@@ -31,11 +32,35 @@ export type AdvancedSettings = {
   partialPointDistributionMode:boolean;
 };
 
+export type CoinStatus="home" | "track" | "stretch" | "finished";
+
+
+export type Coin={
+  id:number;
+  playerId:number;
+  status:CoinStatus;
+  trackIndex:number;
+  stretchIndex:number;
+};
+
+export type GameState={
+  coins:Coin[];
+  currentPlayerId:number;
+  consecutiveOnes:number;
+  consecutiveSixes:number;
+  hasKilled:Record<number,boolean>;
+  finishOrder:number[];
+  phase:'rolling' | 'moving';
+};
+
 type GameContextType = {
   gameSettings: GameSettings;
   setGameSettings: (settings: GameSettings) => void;
   advancedSettings: AdvancedSettings;
   setAdvancedSettings: (settings: AdvancedSettings) => void;
+  gameState:GameState;
+  setGameState:(state:GameState | ((prev:GameState)=>GameState))=>void;
+  resetGame:()=>void;
 };
 
 export const DEFAULT_PLAYERS: Player[] = [
@@ -83,19 +108,54 @@ export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   partialPointDistributionMode:false,
 };
 
+export function initGameState(players:Player[]):GameState{
+  const coins:Coin[]=players.flatMap((player)=>
+    Array.from({length:PIECES_PER_PLAYER},(_,i)=>({
+      id:i,
+      playerId:player.id,
+      status:"home" as CoinStatus,
+      trackIndex:-1,
+      stretchIndex:-1,
+    })),
+  );
+
+  const hasKilled:Record<number,boolean>={};
+  players.forEach((p)=>{hasKilled[p.id]=false;});
+
+  return{
+    coins,
+    currentPlayerId:players[0]?.id ?? 0,
+    consecutiveOnes:0,
+    consecutiveSixes:0,
+    hasKilled,
+    finishOrder:[],
+    phase:"rolling",
+  };
+}
+
+const DEFAULT_GAME_STATE:GameState=initGameState(DEFAULT_GAME_SETTINGS.players);
+
 const GameContext = createContext<GameContextType>({
   gameSettings: DEFAULT_GAME_SETTINGS,
   setGameSettings: () => {},
   advancedSettings: DEFAULT_ADVANCED_SETTINGS,
   setAdvancedSettings: () => {},
+  gameState:DEFAULT_GAME_STATE,
+  setGameState:()=>{},
+  resetGame:()=>{},
 });
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [gameSettings, setGameSettings] = useState<GameSettings>(
+  const [gameSettings, setGameSettingsState] = useState<GameSettings>(
     DEFAULT_GAME_SETTINGS,
   );
+  
   const [advancedSettings, setAdvancedSettingsState] =
     useState<AdvancedSettings>(DEFAULT_ADVANCED_SETTINGS);
+
+  const [gameState,setGameState]=useState<GameState>(
+    initGameState(DEFAULT_GAME_SETTINGS.players),
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -120,6 +180,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setGameSettings=(settings:GameSettings)=>{
+    setGameSettingsState(settings);
+    setGameState(initGameState(settings.players));
+  }
+
+  const resetGame=()=>{
+    setGameState(initGameState(gameSettings.players));
+  };
+
   return (
     <GameContext.Provider
       value={{
@@ -127,6 +196,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setGameSettings,
         advancedSettings,
         setAdvancedSettings,
+        gameState,
+        setGameState,
+        resetGame,
       }}
     >
       {children}

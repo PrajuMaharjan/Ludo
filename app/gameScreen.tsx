@@ -50,11 +50,9 @@ function ExitConfirmModal({
 }
 
 export default function GameScreen() {
-  const { gameSettings } = useGame();
+  const { gameSettings,gameState,setGameState } = useGame();
 
-  const [currentPlayerId, setCurrentPlayerId] = useState(
-    gameSettings.players[0]?.id ?? 0,
-  );
+  const {currentPlayerId, phase} = gameState;
 
   const [confirmExit, setConfirmExit] = useState(false);
   const [diceDisabled, setDiceDisabled] = useState(false);
@@ -77,10 +75,11 @@ export default function GameScreen() {
   const handleRoll = (result: number) => {
     setDiceDisabled(true);
 
-    setCurrentPlayerId((prev) => {
+    setGameState((prev:typeof gameState) => {
       const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(prev);
-      return ids[(idx + 1) % ids.length];
+      const idx = ids.indexOf(prev.currentPlayerId);
+      const nextId=ids[(idx + 1) % ids.length];
+      return {...prev,currentPlayerId:nextId,phase:"rolling"};
     });
     setDiceDisabled(false);
   };
@@ -102,7 +101,7 @@ export default function GameScreen() {
       <Dice
         onRoll={handleRoll}
         isComputerTurn={isComputerTurn}
-        disabled={diceDisabled || isComputerTurn}
+        disabled={diceDisabled || isComputerTurn || phase==="moving"}
         currentPlayerId={currentPlayerId}
       />
 
