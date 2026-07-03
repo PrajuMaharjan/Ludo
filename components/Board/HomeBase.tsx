@@ -20,15 +20,6 @@ const QUADRANT_ORIGINS: Record<number, [number, number]> = {
   3: [9, 0],
 };
 
-function darken(hex:string,amount:number):string{
-  const num=parseInt(hex.replace("#",""),16);
-  const r=Math.max(0,Math.floor(((num>>16) & 0xff)*(1-amount)));
-  const g=Math.max(0,Math.floor(((num>>8) & 0xff)*(1-amount)));
-  const b=Math.max(0,Math.floor((num & 0xff)*(1-amount)));
-
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
-};
-
 export default function HomeBase({ playerId, color,player,isComputer ,isActive}: HomeBaseProps) {
   const [originRow, originCol] = QUADRANT_ORIGINS[playerId];
   const coinPositions = HOME_BASE_POSITIONS[playerId];
