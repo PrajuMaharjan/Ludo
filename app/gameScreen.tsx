@@ -12,7 +12,10 @@ import {useFocusEffect} from "@react-navigation/native";
 import Board from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
 import Colors from "../constants/Colors";
-import { useGame } from "../store/GameContext";
+import { Coin,useGame } from "../store/GameContext";
+import {getMovableCoins} from '../utils/getMovableCoins';
+import {moveCoin} from '../utils/moveCoin';
+
 
 function ExitConfirmModal({
   visible,
@@ -50,12 +53,13 @@ function ExitConfirmModal({
 }
 
 export default function GameScreen() {
-  const { gameSettings,gameState,setGameState } = useGame();
+  const { gameSettings,gameState,setGameState,advancedSettings } = useGame();
 
   const {currentPlayerId, phase} = gameState;
 
   const [confirmExit, setConfirmExit] = useState(false);
-  const [diceDisabled, setDiceDisabled] = useState(false);
+  const [lastRoll,setLastRoll]=useState(0);
+  const [movableCoins,setMovableCoins]=useState<Coin[]>([]);
 
   const currentPlayer = gameSettings.players.find(
     (p) => p.id === currentPlayerId,
@@ -72,16 +76,49 @@ export default function GameScreen() {
     },[])
   );
 
-  const handleRoll = (result: number) => {
-    setDiceDisabled(true);
+  const advanceTurn=(currentState:typeof gameState)=>{
+    const ids=gameSettings.players.map((p)=>p.id);
+    const idx=ids.indexOf(currentState.currentPlayerId);
+    const nextId=ids[(idx+1)%ids.length];
+    setMovableCoins([]);
+    setGameState({...currentState,currentPlayerId:nextId,phase:"rolling"});
+  };
 
-    setGameState((prev:typeof gameState) => {
-      const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(prev.currentPlayerId);
-      const nextId=ids[(idx + 1) % ids.length];
-      return {...prev,currentPlayerId:nextId,phase:"rolling"};
-    });
-    setDiceDisabled(false);
+  const handleRoll = (result: number) => {
+    setLastRoll(result);
+
+    const movable=getMovableCoins(result,gameState,advancedSettings);
+    
+    if(movable.length===0){ // Skip turn if no movable coins
+      advanceTurn(gameState);
+    }else if(movable.length===1){ // Automatically move if only one movable coin
+      handleCoinMove(movable[0],result,gameState);
+    }else{
+      setMovableCoins(movable);
+      setGameState((prev:typeof gameState)=>({...prev,phase:'moving'}));
+    }
+  };
+
+  // Move logic
+  const handleCoinMove=(coin:Coin,roll:number,currentState:typeof gameState)=>{
+    const {updatedCoins,extraTurn}=moveCoin(coin,roll,currentState);
+
+    setMovableCoins([]);
+
+    if(extraTurn){
+      setGameState({...currentState,coins:updatedCoins,phase:"rolling"});
+    }else{
+      const ids=gameSettings.players.map((p)=>p.id);
+      const idx=ids.indexOf(currentState.currentPlayerId);
+      const nextId=ids[(idx+1)%ids.length];
+      setGameState({...currentState,coins:updatedCoins,currentPlayerId:nextId,phase:"rolling"});
+    }
+  };
+
+  // Coin press logic
+  const handleCoinPress=(coin:Coin)=>{
+    if(phase !== "moving") return;
+    handleCoinMove(coin,lastRoll,gameState);
   };
 
   return (
@@ -95,13 +132,16 @@ export default function GameScreen() {
         </TouchableOpacity>
 
       <View style={styles.boardArea}>
-        <Board currentPlayerId={currentPlayerId} />
+        <Board currentPlayerId={currentPlayerId} 
+               movableCoins={movableCoins}
+               onCoinPress={handleCoinPress}
+        />
       </View>
 
       <Dice
         onRoll={handleRoll}
         isComputerTurn={isComputerTurn}
-        disabled={diceDisabled || isComputerTurn || phase==="moving"}
+        disabled={isComputerTurn || phase==="moving"}
         currentPlayerId={currentPlayerId}
       />
 

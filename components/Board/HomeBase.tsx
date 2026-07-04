@@ -3,7 +3,7 @@ import {useEffect,useRef} from "react";
 import { HOME_BASE_POSITIONS } from "../../constants/GameConstants";
 import { CELL_SIZE } from "../../constants/BoardConstants";
 import Coin from "../Coin/Coin";
-import {Player} from "../../store/GameContext";
+import {Coin as CoinType,Player,useGame} from "../../store/GameContext";
 
 type HomeBaseProps = {
   playerId: number;
@@ -11,6 +11,8 @@ type HomeBaseProps = {
   player: Player | undefined;
   isComputer:boolean;
   isActive:boolean;
+  movableCoins:CoinType[];
+  onCoinPress:(coin:CoinType)=>void;
 };
 
 const QUADRANT_ORIGINS: Record<number, [number, number]> = {
@@ -20,7 +22,10 @@ const QUADRANT_ORIGINS: Record<number, [number, number]> = {
   3: [9, 0],
 };
 
-export default function HomeBase({ playerId, color,player,isComputer ,isActive}: HomeBaseProps) {
+export default function HomeBase({ playerId, color,player,isComputer ,isActive,movableCoins,onCoinPress}: HomeBaseProps) {
+  const {gameState}=useGame();
+
+
   const [originRow, originCol] = QUADRANT_ORIGINS[playerId];
   const coinPositions = HOME_BASE_POSITIONS[playerId];
 
@@ -91,33 +96,44 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive}:
           <View style={styles.coinGrid}>
             
             <View style={styles.coinRow}>
-              {coinPositions.slice(0, 2).map((_, index) => player ? (
+              {coinPositions.slice(0, 2).map((_, index) => {
+                const coinData=gameState.coins.find((c)=>c.playerId && c.id===index && c.status==='home');
+                const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===index) : false;
+
+                return player ? (
                 <Coin key={`${playerId}-coin-${index}`}
                       color={color}
                       size={coinSize}
-                      isSelected={false}
+                      isSelected={isMovable}
                       isComputer={isComputer}
-                      disabled={true}
+                      disabled={!isMovable}
+                      onPress={()=>coinData && onCoinPress(coinData)}
                 />
-              ):(
+                ):(
                 <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />
-              )
-              )}
+                );
+              })}
             </View>
 
             <View style={styles.coinRow}>
-              {coinPositions.slice(2, 4).map((_, index) => player ? (
+              {coinPositions.slice(2, 4).map((_, index) =>{
+              const coinId=index+2;
+              const coinData=gameState.coins.find((c)=>c.playerId && c.id===coinId && c.status==='home');
+              const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===coinId) : false;
+
+              return player ? (
                 <Coin key={`${playerId}-coin-${index+2}`}
                       color={color}
                       size={coinSize}
-                      isSelected={false}
+                      isSelected={isMovable}
                       isComputer={isComputer}
-                      disabled={true}
+                      disabled={!isMovable}
+                      onPress={()=>coinData && onCoinPress(coinData)}
                 />
               ):(
                 <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />
-              )
-              )}
+              );
+              })}
             </View>
 
           </View>

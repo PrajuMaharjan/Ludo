@@ -9,7 +9,7 @@ import {
 } from "../../constants/GameConstants";
 import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
-import {useGame} from "../../store/GameContext";
+import {Coin,useGame} from "../../store/GameContext";
 
 type CellType =
   | "blank"
@@ -105,9 +105,11 @@ function CenterOverlay() {
 
 type BoardProps={
   currentPlayerId:number;
+  movableCoins:Coin[];
+  onCoinPress:(coin:Coin)=>void;
 };
 
-export default function Board({currentPlayerId}:BoardProps) {
+export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardProps) {
 
   const {gameSettings}=useGame();
 
@@ -154,10 +156,10 @@ export default function Board({currentPlayerId}:BoardProps) {
         </View>
       ))}
 
-      <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} isActive={currentPlayerId===0} />
-      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===1)} isComputer={gameSettings.players.find(p=>p.id===1)?.isComputer ?? false} isActive={currentPlayerId===1}/>
-      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===2)} isComputer={gameSettings.players.find(p=>p.id===2)?.isComputer ?? false} isActive={currentPlayerId===2}/>
-      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===3)} isComputer={gameSettings.players.find(p=>p.id===3)?.isComputer ?? false} isActive={currentPlayerId===3}/>
+      <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} isActive={currentPlayerId===0} movableCoins={movableCoins} onCoinPress={onCoinPress} />
+      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===1)} isComputer={gameSettings.players.find(p=>p.id===1)?.isComputer ?? false} isActive={currentPlayerId===1} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
+      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===2)} isComputer={gameSettings.players.find(p=>p.id===2)?.isComputer ?? false} isActive={currentPlayerId===2} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
+      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===3)} isComputer={gameSettings.players.find(p=>p.id===3)?.isComputer ?? false} isActive={currentPlayerId===3} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
       <CenterOverlay />
     </View>
   );
