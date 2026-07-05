@@ -97,7 +97,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
             
             <View style={styles.coinRow}>
               {coinPositions.slice(0, 2).map((_, index) => {
-                const coinData=gameState.coins.find((c)=>c.playerId && c.id===index && c.status==='home');
+                const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===index && c.status==='home');
                 const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===index) : false;
 
                 return player ? (
@@ -118,7 +118,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
             <View style={styles.coinRow}>
               {coinPositions.slice(2, 4).map((_, index) =>{
               const coinId=index+2;
-              const coinData=gameState.coins.find((c)=>c.playerId && c.id===coinId && c.status==='home');
+              const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===coinId && c.status==='home');
               const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===coinId) : false;
 
               return player ? (

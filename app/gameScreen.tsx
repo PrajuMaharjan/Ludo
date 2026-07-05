@@ -76,12 +76,15 @@ export default function GameScreen() {
     },[])
   );
 
-  const advanceTurn=(currentState:typeof gameState)=>{
-    const ids=gameSettings.players.map((p)=>p.id);
-    const idx=ids.indexOf(currentState.currentPlayerId);
-    const nextId=ids[(idx+1)%ids.length];
+  const advanceTurn=()=>{
     setMovableCoins([]);
-    setGameState({...currentState,currentPlayerId:nextId,phase:"rolling"});
+    
+    setGameState((prev)=>{
+      const ids=gameSettings.players.map((p)=>p.id);
+      const idx=ids.indexOf(prev.currentPlayerId);
+      const nextId=ids[(idx+1)%ids.length];
+      return{...prev,currentPlayerId:nextId,phase:"rolling"};
+    });
   };
 
   const handleRoll = (result: number) => {
@@ -90,9 +93,9 @@ export default function GameScreen() {
     const movable=getMovableCoins(result,gameState,advancedSettings);
     
     if(movable.length===0){ // Skip turn if no movable coins
-      advanceTurn(gameState);
+      advanceTurn();
     }else if(movable.length===1){ // Automatically move if only one movable coin
-      handleCoinMove(movable[0],result,gameState);
+      handleCoinMove(movable[0],result);
     }else{
       setMovableCoins(movable);
       setGameState((prev:typeof gameState)=>({...prev,phase:'moving'}));
@@ -100,25 +103,26 @@ export default function GameScreen() {
   };
 
   // Move logic
-  const handleCoinMove=(coin:Coin,roll:number,currentState:typeof gameState)=>{
-    const {updatedCoins,extraTurn}=moveCoin(coin,roll,currentState);
-
+  const handleCoinMove=(coin:Coin,roll:number)=>{
     setMovableCoins([]);
-
+    
+    setGameState((prev)=>{
+    const {updatedCoins,extraTurn}=moveCoin(coin,roll,prev);
     if(extraTurn){
-      setGameState({...currentState,coins:updatedCoins,phase:"rolling"});
-    }else{
-      const ids=gameSettings.players.map((p)=>p.id);
-      const idx=ids.indexOf(currentState.currentPlayerId);
-      const nextId=ids[(idx+1)%ids.length];
-      setGameState({...currentState,coins:updatedCoins,currentPlayerId:nextId,phase:"rolling"});
+      return({...prev,coins:updatedCoins,phase:"rolling"});
     }
+    
+    const ids=gameSettings.players.map((p)=>p.id);
+    const idx=ids.indexOf(prev.currentPlayerId);
+    const nextId=ids[(idx+1)%ids.length];
+    return{...prev,coins:updatedCoins,currentPlayerId:nextId,phase:"rolling"};
+    });
   };
 
   // Coin press logic
   const handleCoinPress=(coin:Coin)=>{
     if(phase !== "moving") return;
-    handleCoinMove(coin,lastRoll,gameState);
+    handleCoinMove(coin,lastRoll);
   };
 
   return (
