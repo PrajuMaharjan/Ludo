@@ -2,12 +2,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-    BackHandler,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  BackHandler,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Board from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
@@ -78,48 +78,42 @@ export default function GameScreen() {
     }, []),
   );
 
-  const advanceTurn = () => {
-    setMovableCoins([]);
-
-    setGameState((prev) => {
-      const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(prev.currentPlayerId);
-      const nextId = ids[(idx + 1) % ids.length];
-      return { ...prev, currentPlayerId: nextId, phase: "rolling" };
-    });
-  };
 
   const handleRoll = (result: number) => {
     setLastRoll(result);
 
-    setGameState((prev)=>{
-
+    setGameState((prev) => {
       const movable = getMovableCoins(result, prev, advancedSettings);
 
       if (movable.length === 0) {
-        if(result===1 || result===6){
-        // Extra turn roll one or six
-        return {...prev,phase:"rolling"};
-      }
-      const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(prev.currentPlayerId);
-      const nextId = ids[(idx + 1) % ids.length];
-      return{...prev,currentPlayerId:nextId,phase:"rolling"};
-    }
-      if (movable.length === 1) {
-        // Automatically move if only one movable coin
-        const{updatedCoins,extraTurn}=moveCoin(movable[0],result,prev);
-        if(extraTurn){
-          return{...prev,coins:updatedCoins,phase:"rolling"};
+        if (result === 1 || result === 6) {
+          // Extra turn roll one or six
+          return { ...prev, phase: "rolling" };
         }
         const ids = gameSettings.players.map((p) => p.id);
         const idx = ids.indexOf(prev.currentPlayerId);
         const nextId = ids[(idx + 1) % ids.length];
-        return{...prev,coins:updatedCoins,currentPlayerId:nextId,phase:"rolling"};
+        return { ...prev, currentPlayerId: nextId, phase: "rolling" };
+      }
+      if (movable.length === 1) {
+        // Automatically move if only one movable coin
+        const { updatedCoins, extraTurn } = moveCoin(movable[0], result, prev);
+        if (extraTurn) {
+          return { ...prev, coins: updatedCoins, phase: "rolling" };
+        }
+        const ids = gameSettings.players.map((p) => p.id);
+        const idx = ids.indexOf(prev.currentPlayerId);
+        const nextId = ids[(idx + 1) % ids.length];
+        return {
+          ...prev,
+          coins: updatedCoins,
+          currentPlayerId: nextId,
+          phase: "rolling",
+        };
       }
 
-        setMovableCoins(movable);
-        return{ ...prev, phase: "moving" };
+      setMovableCoins(movable);
+      return { ...prev, phase: "moving" };
     });
   };
 
