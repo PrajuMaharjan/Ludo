@@ -92,24 +92,35 @@ export default function GameScreen() {
   const handleRoll = (result: number) => {
     setLastRoll(result);
 
-    const movable = getMovableCoins(result, gameState, advancedSettings);
+    setGameState((prev)=>{
 
-    if (movable.length === 0) {
-      if(result===1 || result===6){
+      const movable = getMovableCoins(result, prev, advancedSettings);
+
+      if (movable.length === 0) {
+        if(result===1 || result===6){
         // Extra turn roll one or six
-        setGameState((prev)=>({...prev,phase:"rolling"}));
+        return {...prev,phase:"rolling"};
       }
-      else{
-        // Skip turn if no movable coins
-        advanceTurn();
-      }
-    } else if (movable.length === 1) {
-      // Automatically move if only one movable coin
-      handleCoinMove(movable[0], result);
-    } else {
-      setMovableCoins(movable);
-      setGameState((prev: typeof gameState) => ({ ...prev, phase: "moving" }));
+      const ids = gameSettings.players.map((p) => p.id);
+      const idx = ids.indexOf(prev.currentPlayerId);
+      const nextId = ids[(idx + 1) % ids.length];
+      return{...prev,currentPlayerId:nextId,phase:"rolling"};
     }
+      if (movable.length === 1) {
+        // Automatically move if only one movable coin
+        const{updatedCoins,extraTurn}=moveCoin(movable[0],result,prev);
+        if(extraTurn){
+          return{...prev,coins:updatedCoins,phase:"rolling"};
+        }
+        const ids = gameSettings.players.map((p) => p.id);
+        const idx = ids.indexOf(prev.currentPlayerId);
+        const nextId = ids[(idx + 1) % ids.length];
+        return{...prev,coins:updatedCoins,currentPlayerId:nextId,phase:"rolling"};
+      }
+
+        setMovableCoins(movable);
+        return{ ...prev, phase: "moving" };
+    });
   };
 
   // Move logic
