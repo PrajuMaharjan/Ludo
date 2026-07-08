@@ -35,8 +35,6 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
 
   const coinSize = CELL_SIZE * 0.85;
 
-  const darkColor=color;
-
   const flashAnim=useRef(new Animated.Value(0)).current;
 
   useEffect(()=>{
@@ -52,7 +50,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
                 toValue:0,
                 duration:800,
                 useNativeDriver:false
-              }),              
+              }),
       ]),
       );
       loop.start();
@@ -66,7 +64,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
 
   const animatedBackgroundColor=flashAnim.interpolate({
     inputRange:[0,1],
-    outputRange:[darkColor,"#ffffff"],
+    outputRange:[color,"#ffffff"],
   });
 
   const emptySlotStyle={
@@ -87,7 +85,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
           left,
           width: zoneSize,
           height: zoneSize,
-          backgroundColor: isActive ? animatedBackgroundColor:darkColor,
+          backgroundColor: isActive ? animatedBackgroundColor:color,
         },
       ]}
     >
@@ -100,7 +98,10 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
                 const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===index && c.status==='home');
                 const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===index) : false;
 
-                return player ? (
+                if(!player || !coinData){
+                  return <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />;
+                }
+                return (
                 <Coin key={`${playerId}-coin-${index}`}
                       color={color}
                       size={coinSize}
@@ -109,30 +110,29 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
                       disabled={!isMovable}
                       onPress={()=>coinData && onCoinPress(coinData)}
                 />
-                ):(
-                <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />
                 );
               })}
             </View>
 
             <View style={styles.coinRow}>
               {coinPositions.slice(2, 4).map((_, index) =>{
-              const coinId=index+2;
-              const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===coinId && c.status==='home');
-              const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===coinId) : false;
+                const coinId=index+2;
+                const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===coinId && c.status==='home');
+                const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===coinId) : false;
 
-              return player ? (
-                <Coin key={`${playerId}-coin-${index+2}`}
-                      color={color}
-                      size={coinSize}
-                      isSelected={isMovable}
-                      isComputer={isComputer}
-                      disabled={!isMovable}
-                      onPress={()=>coinData && onCoinPress(coinData)}
-                />
-              ):(
-                <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />
-              );
+                if(!player || !coinData ){
+                  return  <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />;
+                }
+                return (
+                  <Coin key={`${playerId}-coin-${index+2}`}
+                        color={color}
+                        size={coinSize}
+                        isSelected={isMovable}
+                        isComputer={isComputer}
+                        disabled={!isMovable}
+                        onPress={()=>coinData && onCoinPress(coinData)}
+                  />
+                );
               })}
             </View>
 
