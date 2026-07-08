@@ -210,7 +210,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
                              size={coinSize}
                              isSelected={isMovable}
                              isComputer={gameSettings.players.find(p=>p.id===coin.playerId)?.isComputer ?? false}
-                             disabled={isMovable}
+                             disabled={!isMovable}
                              onPress={isMovable ? ()=>onCoinPress(coin) : undefined}
               />
             </View>
@@ -250,7 +250,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
                              size={coinSize}
                              isSelected={isMovable}
                              isComputer={gameSettings.players.find(p=>p.id===coin.playerId)?.isComputer ?? false}
-                             disabled={isMovable}
+                             disabled={!isMovable}
                              onPress={isMovable ? ()=>onCoinPress(coin) : undefined}
               />
             </View>
