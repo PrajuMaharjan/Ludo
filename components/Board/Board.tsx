@@ -7,6 +7,7 @@ import {
     HOME_STRETCH_POSITIONS,
     SAFE_CELLS,
     PLAYER_CONFIG,
+    CENTER_CELL,
 } from "../../constants/GameConstants";
 import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
@@ -63,10 +64,8 @@ function getHomeStretchColor(row: number, col: number): string | null {
 function getHomeBaseColor(row: number, col: number): string {
   if (row >= 0 && row <= 5 && col >= 0 && col <= 5) return Colors.player.red;
   if (row >= 0 && row <= 5 && col >= 9 && col <= 14) return Colors.player.blue;
-  if (row >= 9 && row <= 14 && col >= 9 && col <= 14)
-    return Colors.player.green;
-  if (row >= 9 && row <= 14 && col >= 0 && col <= 5)
-    return Colors.player.yellow;
+  if (row >= 9 && row <= 14 && col >= 9 && col <= 14) return Colors.player.green;
+  if (row >= 9 && row <= 14 && col >= 0 && col <= 5) return Colors.player.yellow;
   return Colors.ui.appBg;
 }
 
@@ -129,6 +128,14 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
       stretchCoinsByCell[key].push(coin);
     }
   }
+  
+  // How coins look when stacked
+  const offsets=[
+                  {x:0,y:0},
+                  {x:CELL_SIZE*0.18,y:-CELL_SIZE*0.18},
+                  {x:-CELL_SIZE*0.18,y:CELL_SIZE*0.18},
+                  {x:CELL_SIZE*0.18,y:CELL_SIZE*0.18},
+                ];
 
   const rows = Array.from({ length: 15 }, (_, row) =>
     Array.from({ length: 15 }, (_, col) => ({ row, col })),
@@ -156,17 +163,14 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
               );
             }
             return (
-              <BoardCell
-                key={`${row}-${col}`}
-                row={row}
-                col={col}
-                cellType={cellType}
-                color={
-                  cellType === "homeStretch"
-                    ? (getHomeStretchColor(row, col) ?? Colors.ui.cardBg)
-                    : undefined
-                }
-                size={CELL_SIZE}
+              <BoardCell key={`${row}-${col}`}
+                         row={row}
+                         col={col}
+                         cellType={cellType}
+                         color={
+                                cellType === "homeStretch" ? (getHomeStretchColor(row, col) ?? Colors.ui.cardBg) : undefined
+                               }
+                         size={CELL_SIZE}
               />
             );
           })}
@@ -186,13 +190,6 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
         const cellLeft=col*CELL_SIZE;
         const coinSize=CELL_SIZE*0.72;
 
-        // How coins look when stacked
-        const offsets=[
-          {x:0,y:0},
-          {x:CELL_SIZE*0.18,y:-CELL_SIZE*0.18},
-          {x:-CELL_SIZE*0.18,y:CELL_SIZE*0.18},
-          {x:CELL_SIZE*0.18,y:CELL_SIZE*0.18},
-        ];
         return coins.map((coin,i)=>{
           const playerColor=PLAYER_CONFIG[coin.playerId].color;
           const isMovable=movableCoins.some(m=>m.playerId===coin.playerId && m.id===coin.id);
@@ -226,13 +223,6 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
         const cellLeft=col*CELL_SIZE;
         const coinSize=CELL_SIZE*0.72;
 
-        // How coins look when stacked
-        const offsets=[
-          {x:0,y:0},
-          {x:CELL_SIZE*0.18,y:-CELL_SIZE*0.18},
-          {x:-CELL_SIZE*0.18,y:CELL_SIZE*0.18},
-          {x:CELL_SIZE*0.18,y:CELL_SIZE*0.18},
-        ];
         return coins.map((coin,i)=>{
           const playerColor=PLAYER_CONFIG[coin.playerId].color;
           const isMovable=movableCoins.some(m=>m.playerId===coin.playerId && m.id===coin.id);
@@ -257,6 +247,39 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
           );
         });
       })}
+
+      {/* Rendering coins in finish zone */}
+      {(()=>{
+        
+        const finishedCoins=gameState.coins.filter(c=>c.status==="finished");
+        if(finishedCoins.length===0) return null;
+        const [row,col]=CENTER_CELL;
+        const cellTop=row*CELL_SIZE;
+        const cellLeft=col*CELL_SIZE;
+        const coinSize=CELL_SIZE*0.72;
+
+        return finishedCoins.map((coin,i)=>{
+          const playerColor=PLAYER_CONFIG[coin.playerId].color;
+          const offset=offsets[i] ?? {x:0,y:0};
+          return(
+            <View key={`finished-coin-${coin.playerId}-${coin.id}`}
+                  style={{
+                            position:"absolute",
+                            top:cellTop+(CELL_SIZE-coinSize)/2+offset.y,
+                            left:cellLeft+(CELL_SIZE-coinSize)/2+offset.x,
+                            zIndex:5,
+                        }}
+            >
+              <CoinComponent color={playerColor}
+                             size={coinSize}
+                             isSelected={false}
+                             isComputer={gameSettings.players.find(p=>p.id===coin.playerId)?.isComputer ?? false}
+                             disabled={true}
+              />
+            </View>
+          );
+        });
+      })()}
 
       <CenterOverlay />
     </View>
