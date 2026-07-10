@@ -50,7 +50,7 @@ export type GameState={
   consecutiveSixes:number;
   hasKilled:Record<number,boolean>;
   finishOrder:number[];
-  phase:'rolling' | 'moving';
+  phase:'rolling' | 'moving' | "animating";
 };
 
 type GameContextType = {
@@ -101,10 +101,10 @@ const DEFAULT_GAME_SETTINGS: GameSettings = {
 
 export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   releaseOnOne: true,
-  releaseOnSix: true,
+  releaseOnSix: false,
   furthestDiesOnNoKill: true,
   furthestDiesOnThreeOnes: true,
-  mustKillToEnterHome: false,
+  mustKillToEnterHome: true,
   partialPointDistributionMode:false,
 };
 
@@ -146,16 +146,11 @@ const GameContext = createContext<GameContextType>({
 });
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [gameSettings, setGameSettingsState] = useState<GameSettings>(
-    DEFAULT_GAME_SETTINGS,
-  );
+  const [gameSettings, setGameSettingsState] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
   
-  const [advancedSettings, setAdvancedSettingsState] =
-    useState<AdvancedSettings>(DEFAULT_ADVANCED_SETTINGS);
+  const [advancedSettings, setAdvancedSettingsState] = useState<AdvancedSettings>(DEFAULT_ADVANCED_SETTINGS);
 
-  const [gameState,setGameState]=useState<GameState>(
-    initGameState(DEFAULT_GAME_SETTINGS.players),
-  );
+  const [gameState,setGameState]=useState<GameState>(initGameState(DEFAULT_GAME_SETTINGS.players));
 
   useEffect(() => {
     const load = async () => {

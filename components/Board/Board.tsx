@@ -1,4 +1,5 @@
-import { StyleSheet, View } from "react-native";
+import { Animated,StyleSheet, View } from "react-native";
+import {useEffect,useRef} from "react";
 import Svg, { Polygon } from "react-native-svg";
 import { BOARD_SIZE, CELL_SIZE } from "../../constants/BoardConstants";
 import Colors from "../../constants/Colors";
@@ -13,6 +14,14 @@ import BoardCell from "./BoardCell";
 import HomeBase from "./HomeBase";
 import {Coin,useGame} from "../../store/GameContext";
 import CoinComponent from "../Coin/Coin";
+
+export type CoinAnimationData={
+  coin:Coin;
+  path:[number,number][];
+  color:string;
+  isComputer:boolean;
+  onComplete:()=>void;
+};
 
 type CellType =
   | "blank"
@@ -69,6 +78,58 @@ function getHomeBaseColor(row: number, col: number): string {
   return Colors.ui.appBg;
 }
 
+function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData){
+  const coinSize=CELL_SIZE*0.72;
+  const posX=useRef(new Animated.Value(0)).current;
+  const posY=useRef(new Animated.Value(0)).current;
+
+  useEffect(()=>{
+    if(path.length===0){
+      onComplete();
+      return;
+    }
+
+    const animations=path.map(([row,col])=>{
+      const targetX=col*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+      const targetY=row*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+
+      return Animated.sequence([
+        Animated.parallel([
+          Animated.timing(posX,{toValue:targetX,duration:100,useNativeDriver:true}),
+          Animated.timing(posY,{toValue:targetY,duration:100,useNativeDriver:true})
+        ]),
+        Animated.delay(30),
+      ]);
+    });
+
+    const [startRow,startCol]=path[0];
+    posX.setValue(startCol*CELL_SIZE+(CELL_SIZE-coinSize)/2);
+    posY.setValue(startRow*CELL_SIZE+(CELL_SIZE-coinSize)/2);
+
+    Animated.sequence(animations).start(({finished})=>{
+      if(finished) onComplete();
+    });
+  },[coinSize,onComplete,path,posX,posY,]);
+
+  return(
+    <Animated.View style={{
+                            position:"absolute",
+                            transform:[{translateX:posX},{translateY:posY}],
+                            zIndex:20,
+                            width:coinSize,
+                            height:coinSize,
+                         }}
+    >
+      <CoinComponent color={color}
+                     size={coinSize}
+                     isSelected={false}
+                     isComputer={isComputer}
+                     disabled={true}
+      />
+    </Animated.View>
+  );
+}
+
 function CenterOverlay() {
   const size = CELL_SIZE * 3;
   const top = 6 * CELL_SIZE;
@@ -108,12 +169,14 @@ type BoardProps={
   currentPlayerId:number;
   movableCoins:Coin[];
   onCoinPress:(coin:Coin)=>void;
+  animatingCoins:CoinAnimationData[];
 };
 
-export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardProps) {
+export default function Board({currentPlayerId,movableCoins,onCoinPress,animatingCoins}:BoardProps) {
 
   const {gameSettings,gameState}=useGame();
 
+  const movingCoinKeys=new Set(animatingCoins.map(ac=>`${ac.coin.playerId}-${ac.coin.id}`));
   const trackCoinsByCell:Record<string,Coin[]>={};
   const stretchCoinsByCell:Record<string,Coin[]>={};
 
@@ -177,10 +240,10 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
         </View>
       ))}
 
-      <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} isActive={currentPlayerId===0} movableCoins={movableCoins} onCoinPress={onCoinPress} />
-      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===1)} isComputer={gameSettings.players.find(p=>p.id===1)?.isComputer ?? false} isActive={currentPlayerId===1} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
-      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===2)} isComputer={gameSettings.players.find(p=>p.id===2)?.isComputer ?? false} isActive={currentPlayerId===2} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
-      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===3)} isComputer={gameSettings.players.find(p=>p.id===3)?.isComputer ?? false} isActive={currentPlayerId===3} movableCoins={movableCoins} onCoinPress={onCoinPress}/>
+      <HomeBase playerId={0} color={Colors.player.red} player={gameSettings.players.find(p=>p.id===0)} isComputer={gameSettings.players.find(p=>p.id===0)?.isComputer ?? false} isActive={currentPlayerId===0} movableCoins={movableCoins} onCoinPress={onCoinPress} movingCoinKeys={movingCoinKeys} />
+      <HomeBase playerId={1} color={Colors.player.blue} player={gameSettings.players.find(p=>p.id===1)} isComputer={gameSettings.players.find(p=>p.id===1)?.isComputer ?? false} isActive={currentPlayerId===1} movableCoins={movableCoins} onCoinPress={onCoinPress} movingCoinKeys={movingCoinKeys} />
+      <HomeBase playerId={2} color={Colors.player.green} player={gameSettings.players.find(p=>p.id===2)} isComputer={gameSettings.players.find(p=>p.id===2)?.isComputer ?? false} isActive={currentPlayerId===2} movableCoins={movableCoins} onCoinPress={onCoinPress} movingCoinKeys={movingCoinKeys} />
+      <HomeBase playerId={3} color={Colors.player.yellow} player={gameSettings.players.find(p=>p.id===3)} isComputer={gameSettings.players.find(p=>p.id===3)?.isComputer ?? false} isActive={currentPlayerId===3} movableCoins={movableCoins} onCoinPress={onCoinPress} movingCoinKeys={movingCoinKeys} />
     
       {/* Rendering coins on track */}
       {Object.entries(trackCoinsByCell).map(([key,coins])=>{
@@ -191,6 +254,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
         const coinSize=CELL_SIZE*0.72;
 
         return coins.map((coin,i)=>{
+          if(movingCoinKeys.has(`${coin.playerId}-${coin.id}`)) return null;
           const playerColor=PLAYER_CONFIG[coin.playerId].color;
           const isMovable=movableCoins.some(m=>m.playerId===coin.playerId && m.id===coin.id);
           const offset=offsets[i] ?? {x:0,y:0};
@@ -224,6 +288,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
         const coinSize=CELL_SIZE*0.72;
 
         return coins.map((coin,i)=>{
+          if(movingCoinKeys.has(`${coin.playerId}-${coin.id}`)) return null;
           const playerColor=PLAYER_CONFIG[coin.playerId].color;
           const isMovable=movableCoins.some(m=>m.playerId===coin.playerId && m.id===coin.id);
           const offset=offsets[i] ?? {x:0,y:0};
@@ -280,6 +345,11 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress}:BoardPr
           );
         });
       })()}
+
+      {/* Coin animation rendering */}
+      {animatingCoins.map((ac,i)=>(
+        <CoinAnimation key={`anim-${ac.coin.playerId}-${ac.coin.id}-${i}`}{...ac} />
+      ))}
 
       <CenterOverlay />
     </View>

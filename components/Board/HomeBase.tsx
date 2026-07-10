@@ -13,6 +13,7 @@ type HomeBaseProps = {
   isActive:boolean;
   movableCoins:CoinType[];
   onCoinPress:(coin:CoinType)=>void;
+  movingCoinKeys:Set<string>;
 };
 
 const QUADRANT_ORIGINS: Record<number, [number, number]> = {
@@ -22,7 +23,7 @@ const QUADRANT_ORIGINS: Record<number, [number, number]> = {
   3: [9, 0],
 };
 
-export default function HomeBase({ playerId, color,player,isComputer ,isActive,movableCoins,onCoinPress}: HomeBaseProps) {
+export default function HomeBase({ playerId, color,player,isComputer ,isActive,movableCoins,onCoinPress,movingCoinKeys}: HomeBaseProps) {
   const {gameState}=useGame();
 
 
@@ -98,7 +99,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
                 const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===index && c.status==='home');
                 const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===index) : false;
 
-                if(!player || !coinData){
+                if(!player || !coinData || movingCoinKeys.has(`${playerId}-${index}`)){
                   return <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />;
                 }
                 return (
@@ -120,7 +121,7 @@ export default function HomeBase({ playerId, color,player,isComputer ,isActive,m
                 const coinData=gameState.coins.find((c)=>c.playerId===playerId && c.id===coinId && c.status==='home');
                 const isMovable=coinData ? movableCoins.some((m)=>m.playerId===playerId && m.id===coinId) : false;
 
-                if(!player || !coinData ){
+                if(!player || !coinData || movingCoinKeys.has(`${playerId}-${index}`)){
                   return  <View key={`${playerId}-empty-${index}`} style={emptySlotStyle} />;
                 }
                 return (

@@ -9,10 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Board from "../components/Board/Board";
+import Board,{CoinAnimationData} from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
 import Colors from "../constants/Colors";
+import {PLAYER_CONFIG} from "../constants/GameConstants";
 import { Coin, useGame } from "../store/GameContext";
+import {getCoinPath,getCapturedCoinPath} from "../utils/getCoinPath";
 import { getMovableCoins } from "../utils/getMovableCoins";
 import { moveCoin } from "../utils/moveCoin";
 
@@ -60,6 +62,8 @@ export default function GameScreen() {
   const [lastRoll, setLastRoll] = useState(0);
   const [movableCoins, setMovableCoins] = useState<Coin[]>([]);
 
+  const [movingCoins,setMovingCoins]=useState<CoinAnimationData[]>([]);
+
   const currentPlayer = gameSettings.players.find(
     (p) => p.id === currentPlayerId,
   );
@@ -78,6 +82,61 @@ export default function GameScreen() {
     }, []),
   );
 
+  const moveCoinResult=(coin:Coin,roll:number,capturedCoin:Coin | null)=>{
+    if(capturedCoin){
+      const capturePath=getCapturedCoinPath(capturedCoin);
+      const captureColor=PLAYER_CONFIG[capturedCoin.playerId].color;
+      const captureIsComputer=gameSettings.players.find(p=>p.id===capturedCoin.playerId)?.isComputer ?? false;
+
+      setMovingCoins(prev=>[...prev,{
+        coin:capturedCoin,
+        path:capturePath,
+        color:captureColor,
+        isComputer:captureIsComputer,
+        onComplete:()=>{
+          setMovingCoins([]);
+          commitMove(coin,roll);
+        },
+      }]);
+    }else{
+      setMovingCoins([]);
+      commitMove(coin,roll);
+    }
+  };
+
+  // Returns the state of the coins after movement
+  const commitMove=(coin:Coin,roll:number)=>{
+    setGameState((prev)=>{
+      const {updatedCoins,extraTurn}=moveCoin(coin,roll,prev);
+      if(extraTurn){
+        return{...prev,coins:updatedCoins,phase:"rolling"};
+      }
+      const ids = gameSettings.players.map((p) => p.id);
+      const idx = ids.indexOf(prev.currentPlayerId);
+      const nextId = ids[(idx + 1) % ids.length];
+      return { ...prev, coins:updatedCoins,currentPlayerId: nextId, phase: "rolling" }; 
+    })
+  };
+
+  const startAnimation=(coin:Coin,roll:number)=>{
+    const path=getCoinPath(coin,roll);
+    const color=PLAYER_CONFIG[coin.playerId].color;
+    const isComputer=gameSettings.players.find(p=>p.id===coin.playerId)?.isComputer ?? false;
+
+    const {updatedCoins}=moveCoin(coin,roll,gameState);
+    const movedCoin=updatedCoins.find(c=>c.playerId===coin.playerId && c.id===coin.id);
+    let capturedCoin:Coin | null=null;
+
+    if(movedCoin?.status==="track"){
+      const enemyOnCell=gameState.coins.find(
+        c=>c.playerId !== coin.playerId && c.status==="track" && c.trackIndex===movedCoin.trackIndex) ?? null; 
+      capturedCoin=enemyOnCell;
+    }
+    setMovableCoins([]);
+    setGameState(prev=>({...prev,phase:"animating"}));
+
+    setMovingCoins([{coin,path,color,isComputer,onComplete:()=>moveCoinResult(coin,roll,capturedCoin)}]);
+  };
 
   const handleRoll = (result: number) => {
     setLastRoll(result);
@@ -97,19 +156,8 @@ export default function GameScreen() {
       }
       if (movable.length === 1) {
         // Automatically move if only one movable coin
-        const { updatedCoins, extraTurn } = moveCoin(movable[0], result, prev);
-        if (extraTurn) {
-          return { ...prev, coins: updatedCoins, phase: "rolling" };
-        }
-        const ids = gameSettings.players.map((p) => p.id);
-        const idx = ids.indexOf(prev.currentPlayerId);
-        const nextId = ids[(idx + 1) % ids.length];
-        return {
-          ...prev,
-          coins: updatedCoins,
-          currentPlayerId: nextId,
-          phase: "rolling",
-        };
+        setTimeout(()=>startAnimation(movable[0],result),0);
+        return{...prev,phase:"animating"};
       }
 
       setMovableCoins(movable);
@@ -117,38 +165,16 @@ export default function GameScreen() {
     });
   };
 
-  // Move logic
-  const handleCoinMove = (coin: Coin, roll: number) => {
-    setMovableCoins([]);
-
-    setGameState((prev) => {
-      const { updatedCoins, extraTurn } = moveCoin(coin, roll, prev);
-      if (extraTurn) {
-        return { ...prev, coins: updatedCoins, phase: "rolling" };
-      }
-
-      const ids = gameSettings.players.map((p) => p.id);
-      const idx = ids.indexOf(prev.currentPlayerId);
-      const nextId = ids[(idx + 1) % ids.length];
-      return {
-        ...prev,
-        coins: updatedCoins,
-        currentPlayerId: nextId,
-        phase: "rolling",
-      };
-    });
-  };
-
   // Coin press logic
   const handleCoinPress = (coin: Coin) => {
     if (phase !== "moving") return;
-    handleCoinMove(coin, lastRoll);
+    startAnimation(coin, lastRoll);
   };
 
   return (
     <View style={styles.screen}>
       {/* Back Button */}
-      <TouchableOpacity
+      <TouchableOpacity 
         style={styles.backBtn}
         onPress={() => setConfirmExit(true)}
       >
@@ -160,13 +186,14 @@ export default function GameScreen() {
           currentPlayerId={currentPlayerId}
           movableCoins={movableCoins}
           onCoinPress={handleCoinPress}
+          animatingCoins={movingCoins}
         />
       </View>
 
       <Dice
         onRoll={handleRoll}
         isComputerTurn={isComputerTurn}
-        disabled={isComputerTurn || phase === "moving"}
+        disabled={isComputerTurn || phase === "moving" || phase === "animating"}
         currentPlayerId={currentPlayerId}
       />
 
