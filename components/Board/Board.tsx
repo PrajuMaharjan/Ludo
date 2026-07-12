@@ -82,6 +82,7 @@ function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData
   const coinSize=CELL_SIZE*0.72;
   const posX=useRef(new Animated.Value(0)).current;
   const posY=useRef(new Animated.Value(0)).current;
+  const scale=useRef(new Animated.Value(1)).current;
 
   useEffect(()=>{
     if(path.length===0){
@@ -95,11 +96,13 @@ function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData
 
       return Animated.sequence([
         Animated.parallel([
-          Animated.timing(posX,{toValue:targetX,duration:100,useNativeDriver:true}),
-          Animated.timing(posY,{toValue:targetY,duration:100,useNativeDriver:true})
+          Animated.timing(scale,{toValue:1.35,duration:40,useNativeDriver:true}),
+          Animated.timing(posY,{toValue:targetX,duration:50,useNativeDriver:true}),
+          Animated.timing(posY,{toValue:targetY,duration:50,useNativeDriver:true})
         ]),
-        Animated.delay(30),
-      ]);
+        Animated.timing(scale,{toValue:1,duration:35,useNativeDriver:true}),
+        Animated.delay(20),
+    ]);
     });
 
     const [startRow,startCol]=path[0];
@@ -109,12 +112,12 @@ function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData
     Animated.sequence(animations).start(({finished})=>{
       if(finished) onComplete();
     });
-  },[coinSize,onComplete,path,posX,posY,]);
+  },[coinSize,onComplete,path,posX,posY,scale]);
 
   return(
     <Animated.View style={{
                             position:"absolute",
-                            transform:[{translateX:posX},{translateY:posY}],
+                            transform:[{translateX:posX},{translateY:posY},{scale}],
                             zIndex:20,
                             width:coinSize,
                             height:coinSize,
