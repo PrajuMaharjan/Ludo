@@ -1,5 +1,5 @@
 import { Animated,StyleSheet, View } from "react-native";
-import {useEffect,useRef} from "react";
+import {useEffect,useRef, useState} from "react";
 import Svg, { Polygon } from "react-native-svg";
 import { BOARD_SIZE, CELL_SIZE } from "../../constants/BoardConstants";
 import Colors from "../../constants/Colors";
@@ -80,9 +80,17 @@ function getHomeBaseColor(row: number, col: number): string {
 
 function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData){
   const coinSize=CELL_SIZE*0.72;
+
+  //  Index of current cell in the movement path
+  const [stepIndex,setStepIndex]=useState(0);
+
+  // Values of the current step(Reset each step)
   const posX=useRef(new Animated.Value(0)).current;
   const posY=useRef(new Animated.Value(0)).current;
   const scale=useRef(new Animated.Value(1)).current;
+
+  // Pixel position of the current cell
+  const currentCell=path[stepIndex];
 
   useEffect(()=>{
     if(path.length===0){
@@ -90,46 +98,67 @@ function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData
       return;
     }
 
-    const animations=path.map(([row,col])=>{
-      const targetX=col*CELL_SIZE+(CELL_SIZE-coinSize)/2;
-      const targetY=row*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+    if(stepIndex>=path.length){
+      onComplete();
+      return;
+    }
 
-      return Animated.sequence([
-        Animated.parallel([
+    const [row,col]=path[stepIndex];
+
+    // The position of the cell where the coin will land
+    const targetX=col*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+    const targetY=row*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+
+    if(stepIndex===0){
+      posX.setValue(targetX);
+      posY.setValue(targetY);
+      scale.setValue(1);
+
+      // Delay in hopping animation for each step
+      const t=setTimeout(()=>setStepIndex(1),80);
+      return ()=>clearTimeout(t);
+    }
+
+    // Redo the animation for each cell
+    const [prevRow,prevCol]=path[stepIndex-1];
+    const fromX=prevCol*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+    const fromY=prevRow*CELL_SIZE+(CELL_SIZE-coinSize)/2;
+
+    posX.setValue(fromX);
+    posY.setValue(fromY);
+    scale.setValue(1);
+
+    Animated.sequence([
+      Animated.parallel([
+          Animated.timing(posX,{toValue:targetX,duration:50,useNativeDriver:true}),
+          Animated.timing(posY,{toValue:targetY,duration:50,useNativeDriver:true}),
           Animated.timing(scale,{toValue:1.35,duration:40,useNativeDriver:true}),
-          Animated.timing(posY,{toValue:targetX,duration:50,useNativeDriver:true}),
-          Animated.timing(posY,{toValue:targetY,duration:50,useNativeDriver:true})
         ]),
-        Animated.timing(scale,{toValue:1,duration:35,useNativeDriver:true}),
+        Animated.timing(scale,{toValue:1,duration:30,useNativeDriver:true}),
         Animated.delay(20),
-    ]);
-    });
+    ]).start(({finished})=>{
+      if(finished) setStepIndex(i=>i+1)
+      });
+    },[coinSize,onComplete,path,posX,posY,scale,stepIndex,]);
 
-    const [startRow,startCol]=path[0];
-    posX.setValue(startCol*CELL_SIZE+(CELL_SIZE-coinSize)/2);
-    posY.setValue(startRow*CELL_SIZE+(CELL_SIZE-coinSize)/2);
+    if(!currentCell) return null;
 
-    Animated.sequence(animations).start(({finished})=>{
-      if(finished) onComplete();
-    });
-  },[coinSize,onComplete,path,posX,posY,scale]);
-
-  return(
-    <Animated.View style={{
+    return(
+      <Animated.View style={{
                             position:"absolute",
                             transform:[{translateX:posX},{translateY:posY},{scale}],
                             zIndex:20,
                             width:coinSize,
                             height:coinSize,
-                         }}
-    >
-      <CoinComponent color={color}
-                     size={coinSize}
-                     isSelected={false}
-                     isComputer={isComputer}
-                     disabled={true}
-      />
-    </Animated.View>
+                           }}
+      >
+        <CoinComponent color={color}
+                      size={coinSize}
+                      isSelected={false}
+                      isComputer={isComputer}
+                      disabled={true}
+        />
+      </Animated.View>
   );
 }
 
