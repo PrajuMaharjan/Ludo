@@ -41,7 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
- 
- # Progress Images and Videos
+
+# Progress Images and Videos
 **/ProgressVideos/
 ProgressImages/
+
+current-local-issue

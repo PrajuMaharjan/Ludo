@@ -67,6 +67,13 @@ const SETTINGS: SettingConfig[] = [
       "Split your dice roll across multiple coins. e.g roll a 6 and move one coin 2 steps and another 4 steps.",
     icon: "✂️",
   },
+  {
+    key: "forwardsBackwardsMode",
+    label: "Forwards / Backwards Mode",
+    description:
+      "Choose to move your coin forwards or backwards by the rolled amount. Useful for strategic repositioning.",
+    icon: "↔️",
+  },
 ];
 
 function DescriptionModal({
@@ -345,7 +352,7 @@ export default function AdvancedSettingsScreen() {
           <View style={styles.group}>
             <Text style={styles.groupLabel}>HOME RULES</Text>
             <View style={styles.card}>
-              {SETTINGS.filter((s) => s.key === "mustKillToEnterHome").map(
+              {SETTINGS.filter(s => s.key === "mustKillToEnterHome").map(
                 (config) => (
                   <SettingsRow
                     key={config.key}
@@ -364,15 +371,17 @@ export default function AdvancedSettingsScreen() {
             <Text style={styles.groupLabel}>GameMode</Text>
             <View style={styles.card}>
               {SETTINGS.filter(
-                (s) => s.key === "partialPointDistributionMode",
-              ).map((config) => (
-                <SettingsRow
-                  key={config.key}
-                  config={config}
-                  value={local[config.key]}
-                  onToggle={() => toggle(config.key)}
-                  onPressInfo={() => setDescConfig(config)}
-                />
+                s => ["partialPointDistributionMode","forwardsBackwardsMode"].includes(s.key)).map((config,index,arr)=>(
+                  <View key={config.key}>
+                
+                    <SettingsRow
+                      config={config}
+                      value={local[config.key]}
+                      onToggle={() => toggle(config.key)}
+                      onPressInfo={() => setDescConfig(config)}
+                    />
+                    {index < arr.length-1 && <View style={styles.divider} />}
+                  </View>
               ))}
             </View>
           </View>

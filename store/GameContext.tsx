@@ -1,11 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
-} from "react";
+import {createContext,ReactNode,useContext,useEffect,useState} from "react";
 import {PIECES_PER_PLAYER} from "../constants/GameConstants";
 
 const STORAGE_KEY = "ludo_advanced_settings";
@@ -30,10 +24,10 @@ export type AdvancedSettings = {
   furthestDiesOnThreeOnes: boolean;
   mustKillToEnterHome: boolean;
   partialPointDistributionMode:boolean;
+  forwardsBackwardsMode: boolean;
 };
 
 export type CoinStatus="home" | "track" | "stretch" | "finished";
-
 
 export type Coin={
   id:number;
@@ -106,6 +100,7 @@ export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   furthestDiesOnThreeOnes: true,
   mustKillToEnterHome: true,
   partialPointDistributionMode:false,
+  forwardsBackwardsMode:false,
 };
 
 export function initGameState(players:Player[]):GameState{
