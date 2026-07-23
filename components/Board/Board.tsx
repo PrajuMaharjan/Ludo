@@ -153,10 +153,10 @@ function CoinAnimation({coin,path,color,isComputer,onComplete}:CoinAnimationData
                            }}
       >
         <CoinComponent color={color}
-                      size={coinSize}
-                      isSelected={false}
-                      isComputer={isComputer}
-                      disabled={true}
+                       size={coinSize}
+                       isSelected={false}
+                       isComputer={isComputer}
+                       disabled={true}
         />
       </Animated.View>
   );
@@ -280,6 +280,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress,animatin
       {/* Rendering coins on track */}
       {Object.entries(trackCoinsByCell).map(([key,coins])=>{
         const trackIndex=coins[0].trackIndex;
+        if (trackIndex<0 || trackIndex>=CELL_POSITIONS.length) return null;
         const [row,col]=CELL_POSITIONS[trackIndex];
         const cellTop=row*CELL_SIZE;
         const cellLeft=col*CELL_SIZE;
@@ -314,6 +315,7 @@ export default function Board({currentPlayerId,movableCoins,onCoinPress,animatin
       {/* Rendering coins on stretch */}
       {Object.entries(stretchCoinsByCell).map(([key,coins])=>{
         const {playerId,stretchIndex}=coins[0];
+        if (stretchIndex<0 || stretchIndex >= HOME_STRETCH_POSITIONS[playerId]?.length) return null;
         const [row,col]=HOME_STRETCH_POSITIONS[playerId][stretchIndex];
         const cellTop=row*CELL_SIZE;
         const cellLeft=col*CELL_SIZE;

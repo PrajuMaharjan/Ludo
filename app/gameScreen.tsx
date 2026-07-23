@@ -5,7 +5,7 @@ import {BackHandler,Modal,StyleSheet,Text,TouchableOpacity,View} from "react-nat
 import Board,{CoinAnimationData} from "../components/Board/Board";
 import Dice from "../components/Dice/Dice";
 import Colors from "../constants/Colors";
-import {PLAYER_CONFIG} from "../constants/GameConstants";
+import {PLAYER_CONFIG, SAFE_CELLS} from "../constants/GameConstants";
 import { Coin, useGame } from "../store/GameContext";
 import {getCoinPath,getCapturedCoinPath} from "../utils/getCoinPath";
 import { getMovableCoins } from "../utils/getMovableCoins";
@@ -114,8 +114,11 @@ export default function GameScreen() {
     let capturedCoin:Coin | null=null;
 
     if(movedCoin?.status==="track"){
-      capturedCoin=gameState.coins.find(
-        c=>c.playerId !== coin.playerId && c.status==="track" && c.trackIndex===movedCoin.trackIndex) ?? null; 
+      const isSafe=SAFE_CELLS.includes(movedCoin.trackIndex);
+      if(!isSafe){
+        capturedCoin=gameState.coins.find(
+          c=>c.playerId !== coin.playerId && c.status==="track" && c.trackIndex===movedCoin.trackIndex) ?? null; 
+      }
     }
     setMovableCoins([]);
 
@@ -304,4 +307,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-});
+})
