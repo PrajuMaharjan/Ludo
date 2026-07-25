@@ -1,6 +1,6 @@
 import {ImageBackground,StyleSheet,View} from "react-native";
 import CardButton from "../components/common/CardButton";
-import ScreenTitle from "../components/common/ScreenTitle";
+import AppTitle from "../components/common/AppTitle";
 
 const Buttons = [
   {
@@ -28,7 +28,7 @@ export default function HomeScreen() {
     >
       <View style={styles.overlay} />
       <View style={styles.container}>
-        <ScreenTitle title=" Ludo! " />
+        <AppTitle title=" Ludo! " />
 
         {/* Three buttons */}
         <View style={styles.buttonContainer}>
